@@ -10,7 +10,7 @@
 #include "Plant.h"
 class Ground :public GameObject{
 	public:
-		Ground(int x, int y,int w, int h,bool newGame);
+		Ground(int ix, int iy,int w, int h,bool newGame);
 		virtual ~Ground();
 		void tick();
 		void render();

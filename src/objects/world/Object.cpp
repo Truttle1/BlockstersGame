@@ -6,7 +6,7 @@
  */
 
 #include "Object.h"
-Object::Object(int x, int y) : GameObject(x,y,8,8)
+Object::Object(int ix, int iy) : GameObject(ix,iy,8,8)
 {
 
 }

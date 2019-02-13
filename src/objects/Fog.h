@@ -15,6 +15,7 @@ class Fog {
 		virtual ~Fog();
 		void disable();
 		void render();
+		bool isVisible();
 
 	private:
 		bool visible;

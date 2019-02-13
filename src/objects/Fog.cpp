@@ -31,6 +31,10 @@ void Fog::render()
 {
 	if(visible)
 	{
-		DrawRectangle(x,y,16,16,BLACK);
+		//DrawRectangle(x,y,16,16,BLACK);
 	}
+}
+bool Fog::isVisible()
+{
+	return visible;
 }

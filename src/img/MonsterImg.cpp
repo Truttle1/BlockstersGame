@@ -22,7 +22,7 @@ MonsterImg::~MonsterImg() {
 
 void MonsterImg::initTextures()
 {
-	basic0 = LoadTexture("src/img/plants/basicmonster0.png");
-	basic1 = LoadTexture("src/img/plants/basicmonster1.png");
-	basic2 = LoadTexture("src/img/plants/basicmonster2.png");
+	basic0 = LoadTexture("src/img/monsters/basicmonster0.png");
+	basic1 = LoadTexture("src/img/monsters/basicmonster1.png");
+	basic2 = LoadTexture("src/img/monsters/basicmonster2.png");
 }

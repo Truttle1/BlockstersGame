@@ -8,13 +8,14 @@
 #include "Plant.h"
 #include "../../species/Species.h"
 #include <iostream>
-Plant::Plant(int x, int y, int sp) : GameObject(x,y,8,8)
+Plant::Plant(int ix, int iy, int sp) : GameObject(ix,iy,8,8)
 {
 	name = "Plant";
 	species = sp;
 	arbitraryPopNumber = (rand()%10)+1;
 	Species::plantSpecies[species].population += arbitraryPopNumber;
 	age = 0;
+	hp = (Species::plantSpecies[species].size/3)+1;
 }
 Plant::~Plant()
 {
@@ -22,18 +23,50 @@ Plant::~Plant()
 }
 void Plant::tick()
 {
-
+	if(hp <= 0)
+	{
+		kill();
+	}
 }
 void Plant::render()
 {
-	//DrawRectangle(x,y,8,8,color);
-	DrawTexture(Species::plantSpecies[this->species].image,x,y,WHITE);
+	/*
+	if(!alive)
+	{
+		color = BLACK;
+	}
+	else if(hp <= 0)
+	{
+		color = RED;
+	}
+	else if(hp == 1)
+	{
+		color = YELLOW;
+	}
+	else if(hp == 2)
+	{
+		color = BLUE;
+	}
+	else
+	{
+		color = GREEN;
+	}*/
+	int normX = x/16;
+	int normY = y/16;
+	if(!GameObject::fog[normX][normY].isVisible())
+	{
+		DrawTexture(Species::plantSpecies[this->species].image,x,y,WHITE);
+	}
 }
 void Plant::nextGeneration()
 {
 	color = GREEN;
 	try
 	{
+		if(hp <= 0)
+		{
+			kill();
+		}
 		bool onLand = true;
 		for(uint i = 0; i<GameObject::objects.size();i++)
 		{
@@ -134,7 +167,6 @@ void Plant::nextGeneration()
 		age++;
 		if(age>2)
 		{
-			removeFog();
 		}
 
 	}
@@ -198,6 +230,7 @@ void Plant::kill()
 }
 void Plant::evolve()
 {
+	printf("PLANT EVOLVE!\n");
 	int minNew = Species::plantSpecies[species].minNew;
 	int maxNew = Species::plantSpecies[species].maxNew;
 	int minDeath = Species::plantSpecies[species].minDeath;
@@ -395,9 +428,21 @@ void Plant::removeFog()
 }
 void Plant::nextMove()
 {
-
+	if(hp <= 0)
+	{
+		kill();
+	}
 }
 void Plant::nextEat()
 {
 
+}
+int Plant::getEaten(int amount)
+{
+	removeHp(amount);
+	return Species::plantSpecies[species].nutrients*2;
+}
+void Plant::removeHp(int amount)
+{
+	this->hp -= amount;
 }

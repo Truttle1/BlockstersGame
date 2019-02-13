@@ -15,7 +15,7 @@
 class Plant:public GameObject
 {
 	public:
-		Plant(int x, int y, int sp);
+		Plant(int ix, int iy, int sp);
 		virtual ~Plant();
 		void tick();
 		void render();
@@ -26,12 +26,15 @@ class Plant:public GameObject
 		int getSpecies();
 		bool getAlive();
 		void kill();
+		int getEaten(int amount);
+		void removeHp(int amount);
 	private:
 		int species;
 		bool alive = true;
 		Color color;
 		int arbitraryPopNumber;
 		int age;
+		int hp;
 
 		int getNeighborhood();
 		void killSameLocation();

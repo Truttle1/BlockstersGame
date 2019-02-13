@@ -17,9 +17,13 @@ Color ObjectColors::STEM_BROWN = {128,128,0,255};
 Color ObjectColors::SUN_YELLOW = {255,255,0,255};
 Color ObjectColors::SKY_BLUE = {0,128,255,255};
 Color ObjectColors::CRIMSON_RED = {128,20,5,255};
+Color ObjectColors::DARK_BLACK = {0,0,0,255};
 vector<Color> ObjectColors::plantColorsStem;
 vector<Color> ObjectColors::plantColorsFlower;
 vector<Color> ObjectColors::plantColorsHighlight;
+vector<Color> ObjectColors::monsterColors;
+vector<Color> ObjectColors::monsterColorsEyes;
+vector<Color> ObjectColors::monsterColorsHighlight;
 
 ObjectColors::ObjectColors() {
 	// TODO Auto-generated constructor stub
@@ -49,5 +53,30 @@ void ObjectColors::initColors()
 	plantColorsHighlight.push_back(SUN_YELLOW);
 	plantColorsHighlight.push_back(SKY_BLUE);
 	plantColorsHighlight.push_back(CRIMSON_RED);
+
+	monsterColors.push_back(ALT_GREEN);
+	monsterColors.push_back(DARK_GREEN);
+	monsterColors.push_back(STEM_BROWN);
+	monsterColors.push_back(ROSE_RED);
+	monsterColors.push_back(CYAN_BLUE);
+	monsterColors.push_back(SUN_YELLOW);
+	monsterColors.push_back(BLUE);
+	monsterColors.push_back(MAGENTA);
+	monsterColors.push_back(SKY_BLUE);
+	monsterColors.push_back(GRAY);
+	monsterColors.push_back(ORANGE);
+
+	monsterColorsEyes.push_back(DARK_GREEN);
+	monsterColorsEyes.push_back(BLUE);
+	monsterColorsEyes.push_back(DARK_BLACK);
+	monsterColorsEyes.push_back(GRAY);
+	monsterColorsEyes.push_back(CRIMSON_RED);
+
+	monsterColorsHighlight.push_back(ROSE_RED);
+	monsterColorsHighlight.push_back(CYAN_BLUE);
+	monsterColorsHighlight.push_back(ALT_GREEN);
+	monsterColorsHighlight.push_back(SUN_YELLOW);
+	monsterColorsHighlight.push_back(SKY_BLUE);
+	monsterColorsHighlight.push_back(CRIMSON_RED);
 }
 

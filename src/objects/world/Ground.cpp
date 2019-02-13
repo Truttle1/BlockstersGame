@@ -8,7 +8,7 @@
 #include "Ground.h"
 typedef GameObject super;
 const int LENGTH_OF_CREATE = 18;
-Ground::Ground(int x, int y,int w, int h, bool newGame) : super(x,y,w,h)
+Ground::Ground(int ix, int iy,int w, int h, bool newGame) : super(ix,iy,w,h)
 {
 	name = "Ground";
 	if(rand()%300 < 1)
@@ -299,7 +299,7 @@ void Ground::setupLandGraphics(Texture2D* dirt, Texture2D* beach,Texture2D* tund
 }
 void Ground::nextGeneration()
 {
-	if(GameObject::generation == 1)
+	if(GameObject::generation == -14)
 	{
 		for(unsigned int i=0; i<10;i++)
 		{

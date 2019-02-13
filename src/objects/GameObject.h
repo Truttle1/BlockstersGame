@@ -21,7 +21,7 @@ typedef unsigned int uint;
 	typedef enum Biome{WATER,DIRT,BEACH,DESERT,GRASS,JUNGLE,TUNDRA,MOUNTAIN,SNOW,FRESHWATER,NIL} Biome;
 	class GameObject {
 		public:
-			GameObject(int x, int y,int w, int h);
+			GameObject(int ix, int iy,int w, int h);
 			virtual ~GameObject();
 			virtual void tick()=0;
 			virtual void render()=0;
@@ -36,6 +36,9 @@ typedef unsigned int uint;
 			int getWidth();
 			int getHeight();
 			string getName();
+			void unClick();
+			bool isClicked();
+
 			static void setInternalClock(int clock);
 			static void setGroundArray(GameObject* groundArray[60][60]);
 			static vector<GameObject*> objects;
@@ -69,6 +72,8 @@ typedef unsigned int uint;
 			}
 			static int worldMouseX;
 			static int worldMouseY;
+			bool clicked;
+
 
 	};
 

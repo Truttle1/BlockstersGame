@@ -52,7 +52,16 @@ void PlantUI::close()
 }
 void PlantUI::toggle()
 {
-	running = !running;
+	if(!UI::isOpen() && !running)
+	{
+		running = true;
+		open = true;
+	}
+	else if(UI::isOpen() && running)
+	{
+		running = false;
+		open = false;
+	}
 }
 bool PlantUI::getRunning()
 {

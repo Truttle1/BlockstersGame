@@ -7,6 +7,7 @@
 
 #include "Species.h"
 std::vector<PlantSpecies> Species::plantSpecies;
+std::vector<MonsterSpecies> Species::monsterSpecies;
 
 
 std::string Species::generateName()
@@ -95,7 +96,7 @@ Texture Species::replaceColorsToImage(Texture* image, Color c1, Color c2)
 	for(unsigned int i = 0; i<64; i++)
 	{
 		Color c = pixels[i];
-		if(c.r == c1.r && c.g == c1.g && c.b == c1.b)
+		if(c.r == c1.r && c.g == c1.g && c.b == c1.b && c.a == c1.a)
 		{
 			printf("%d__%d\n",c.g,i);
 			pixels[i] = c2;

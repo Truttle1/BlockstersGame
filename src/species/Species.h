@@ -34,17 +34,34 @@ typedef struct PlantSpecies
 }PlantSpecies;
 typedef struct MonsterSpecies
 {
+	bool land;
+	bool carnivore;
+	bool enemy;
 	int minNew;
 	int maxNew;
 	int minDeath;
 	int maxDeath;
-	int lifespan;
-	int movement;
+
 	int metabolism;
+	int lifespan;
+
+	int groupSize;
+	int speed;
+
 	int size;
-	int nutrients;
+	int toxicity;
+
 	int strength;
+	int resil;
+
 	Texture2D image;
+	int population;
+	Color bodyColor;
+	Color eyeColor;
+	Color highlightColor;
+	std::string name;
+
+	int agression;
 }MonsterSpecies;
 
 class Species
@@ -52,7 +69,6 @@ class Species
 	public:
 		static std::vector<PlantSpecies> plantSpecies;
 		static std::vector<MonsterSpecies> monsterSpecies;
-		static std::vector<MonsterSpecies> enemyMonsterSpecies;
 
 		void init();
 		static std::string generateName();

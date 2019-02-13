@@ -11,7 +11,7 @@
 #include "../GameObject.h"
 class Object:public GameObject {
 	public:
-		Object(int x, int y);
+		Object(int ix, int iy);
 		virtual ~Object();
 		void tick();
 		void render();

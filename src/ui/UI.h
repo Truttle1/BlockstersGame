@@ -15,10 +15,12 @@ class UI {
 		virtual ~UI();
 		virtual void toggle()=0;
 		void loadFonts();
+		static bool isOpen();
 	protected:
 		Font font;
 		Font fontBig;
 		bool getClicking(int x, int y, int width, int height);
+		static bool open;
 
 	private:
 		bool running;

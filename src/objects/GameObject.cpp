@@ -12,16 +12,16 @@ vector<GameObject*> GameObject::objects;
 GameObject* GameObject::groundArray[60][60];
 Fog GameObject::fog[60][60];
 int GameObject::internalClock = 0;
-int GameObject::generation = 1;
+int GameObject::generation = -15;
 int GameObject::worldMouseX = 0;
 int GameObject::worldMouseY = 0;
 bool GameObject::evolutionOccuredYet = false;
 Font GameObject::font;
 
-	GameObject::GameObject(int x, int y,int w, int h)
+	GameObject::GameObject(int ix, int iy,int w, int h)
 	{
-		GameObject::x = x;
-		GameObject::y = y;
+		GameObject::x = ix;
+		GameObject::y = iy;
 		GameObject::width = w;
 		GameObject::height = h;
 
@@ -94,5 +94,15 @@ Font GameObject::font;
 	void GameObject::resetEvolution()
 	{
 		evolutionOccuredYet = false;
+	}
+
+	void GameObject::unClick()
+	{
+		clicked = false;
+	}
+
+	bool GameObject::isClicked()
+	{
+		return clicked;
 	}
 

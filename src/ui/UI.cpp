@@ -6,7 +6,7 @@
  */
 
 #include "UI.h"
-
+bool UI::open = false;
 UI::UI() {
 	running = false;
 }
@@ -30,4 +30,8 @@ bool UI::getClicking(int x, int y, int width, int height)
 		clicking = (mx >= x && my >= y && mx <= x+width && my <= y+height);
 	}
 	return clicking;
+}
+bool UI::isOpen()
+{
+	return open;
 }

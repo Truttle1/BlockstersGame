@@ -24,9 +24,14 @@ public:
 	static Color STEM_BROWN;
 	static Color SKY_BLUE;
 	static Color CRIMSON_RED;
+	static Color DARK_BLACK;
 	static vector<Color> plantColorsStem;
 	static vector<Color> plantColorsFlower;
 	static vector<Color> plantColorsHighlight;
+
+	static vector<Color> monsterColors;
+	static vector<Color> monsterColorsEyes;
+	static vector<Color> monsterColorsHighlight;
 	static void initColors();
 };
 
