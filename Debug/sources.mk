@@ -30,6 +30,7 @@ src/objects \
 src/objects/world \
 src/species \
 src/ui \
+src/ui/fileui \
 src/ui/monsterui \
 src/ui/plantui \
 

@@ -5,18 +5,21 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../src/objects/world/Ground.cpp \
+../src/objects/world/Meat.cpp \
 ../src/objects/world/Monster.cpp \
 ../src/objects/world/Object.cpp \
 ../src/objects/world/Plant.cpp 
 
 OBJS += \
 ./src/objects/world/Ground.o \
+./src/objects/world/Meat.o \
 ./src/objects/world/Monster.o \
 ./src/objects/world/Object.o \
 ./src/objects/world/Plant.o 
 
 CPP_DEPS += \
 ./src/objects/world/Ground.d \
+./src/objects/world/Meat.d \
 ./src/objects/world/Monster.d \
 ./src/objects/world/Object.d \
 ./src/objects/world/Plant.d 

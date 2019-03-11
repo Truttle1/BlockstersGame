@@ -28,6 +28,18 @@ void Plant::tick()
 		kill();
 	}
 }
+void Plant::loadFromFile(int iHp, int iAge, int iPop)
+{
+	Species::plantSpecies[species].population -= arbitraryPopNumber;
+	hp = iHp;
+	age = iAge;
+	arbitraryPopNumber = iPop;
+	Species::plantSpecies[species].population += arbitraryPopNumber;
+}
+int Plant::getPopulation()
+{
+	return arbitraryPopNumber;
+}
 void Plant::render()
 {
 	/*
@@ -149,7 +161,7 @@ void Plant::nextGeneration()
 			int newY = ((rand()%5)*8)-16;
 			Plant* p = new Plant(this->getX()+newX,this->getY()+newY,this->getSpecies());
 			GameObject::objects.push_back(p);
-			if(rand()%10000<5 && !GameObject::evolutionOccuredYet)
+			if(rand()%10000<5 && !GameObject::evolutionOccuredYet && alive)
 			{
 				evolve();
 				GameObject::evolutionOccuredYet = true;
@@ -228,6 +240,16 @@ void Plant::kill()
 		Species::plantSpecies[species].population -= arbitraryPopNumber;
 	}
 }
+int Plant::getAge()
+{
+	return age;
+}
+
+int Plant::getHP()
+{
+	return hp;
+}
+
 void Plant::evolve()
 {
 	printf("PLANT EVOLVE!\n");

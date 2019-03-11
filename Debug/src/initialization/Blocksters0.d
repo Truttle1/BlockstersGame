@@ -32,11 +32,22 @@ src/initialization/Blocksters0.o: ../src/initialization/Blocksters0.cpp \
  ../src/initialization/../ui/monsterui/MonsterUI.h \
  ../src/initialization/../ui/monsterui/../UI.h \
  ../src/initialization/../ui/monsterui/../../species/Species.h \
+ ../src/initialization/../ui/monsterui/TextBox.h \
+ ../src/initialization/../ui/monsterui/../../libraries/raylib.h \
+ ../src/initialization/../ui/monsterui/ColorBox.h \
+ ../src/initialization/../ui/monsterui/RadioButton.h \
  ../src/initialization/../ui/UIButton.h \
  ../src/initialization/../ui/../libraries/raylib.h \
  ../src/initialization/../ui/UI.h \
  ../src/initialization/../img/ObjectColors.h \
- ../src/initialization/../objects/EyeCandy.h
+ ../src/initialization/../objects/EyeCandy.h \
+ ../src/initialization/../objects/world/Meat.h \
+ ../src/initialization/../ui/fileui/FileUI.h \
+ ../src/initialization/../ui/fileui/../UI.h \
+ ../src/initialization/../ui/fileui/../../species/Species.h \
+ ../src/initialization/../ui/fileui/../../objects/GameObject.h \
+ ../src/initialization/../ui/fileui/../../objects/world/Ground.h \
+ ../src/initialization/../ui/fileui/../../objects/world/Monster.h
 
 ../src/initialization/../libraries/raylib.h:
 
@@ -104,6 +115,14 @@ src/initialization/Blocksters0.o: ../src/initialization/Blocksters0.cpp \
 
 ../src/initialization/../ui/monsterui/../../species/Species.h:
 
+../src/initialization/../ui/monsterui/TextBox.h:
+
+../src/initialization/../ui/monsterui/../../libraries/raylib.h:
+
+../src/initialization/../ui/monsterui/ColorBox.h:
+
+../src/initialization/../ui/monsterui/RadioButton.h:
+
 ../src/initialization/../ui/UIButton.h:
 
 ../src/initialization/../ui/../libraries/raylib.h:
@@ -113,3 +132,17 @@ src/initialization/Blocksters0.o: ../src/initialization/Blocksters0.cpp \
 ../src/initialization/../img/ObjectColors.h:
 
 ../src/initialization/../objects/EyeCandy.h:
+
+../src/initialization/../objects/world/Meat.h:
+
+../src/initialization/../ui/fileui/FileUI.h:
+
+../src/initialization/../ui/fileui/../UI.h:
+
+../src/initialization/../ui/fileui/../../species/Species.h:
+
+../src/initialization/../ui/fileui/../../objects/GameObject.h:
+
+../src/initialization/../ui/fileui/../../objects/world/Ground.h:
+
+../src/initialization/../ui/fileui/../../objects/world/Monster.h:

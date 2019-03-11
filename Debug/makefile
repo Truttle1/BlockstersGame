@@ -10,6 +10,7 @@ RM := rm -rf
 -include sources.mk
 -include src/ui/plantui/subdir.mk
 -include src/ui/monsterui/subdir.mk
+-include src/ui/fileui/subdir.mk
 -include src/ui/subdir.mk
 -include src/species/subdir.mk
 -include src/objects/world/subdir.mk

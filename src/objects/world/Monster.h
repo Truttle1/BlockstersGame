@@ -18,6 +18,7 @@ class Monster:public GameObject {
 		Monster(int ix, int iy, int sp, bool e);
 		virtual ~Monster();
 		void tick();
+		void loadFromFile(int iAge, int iHp, int population);
 		void render();
 		void nextGeneration();
 		void nextEat();
@@ -29,6 +30,9 @@ class Monster:public GameObject {
 		bool isMoving();
 		void resetMovement();
 		bool isEnemy();
+		int getHP();
+		int getAge();
+		int getPopulation();
 	private:
 		int getNeighborhood();
 		void killSameLocation();

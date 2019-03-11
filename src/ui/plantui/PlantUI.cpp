@@ -33,6 +33,10 @@ void PlantUI::tick()
 	{
 		clickRight();
 	}
+	if(!open)
+	{
+		running = false;
+	}
 }
 void PlantUI::render()
 {

@@ -8,7 +8,6 @@
 #define RAYLIB
 #include "../libraries/raylib.h"
 #include "../img/PlantImg.h"
-#include "Fog.h"
 #endif
 #include <vector>
 #include <string>
@@ -18,6 +17,7 @@
 typedef unsigned int uint;
 #ifndef OBJECTS_GAMEOBJECT_H_
 	#define OBJECTS_GAMEOBJECT_H_
+	#include "Fog.h"
 	typedef enum Biome{WATER,DIRT,BEACH,DESERT,GRASS,JUNGLE,TUNDRA,MOUNTAIN,SNOW,FRESHWATER,NIL} Biome;
 	class GameObject {
 		public:

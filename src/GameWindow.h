@@ -29,6 +29,8 @@
 #include "img/PlantImg.h"
 #include "img/ObjectColors.h"
 #include "objects/EyeCandy.h"
+#include "objects/world/Meat.h"
+#include "ui/fileui/FileUI.h"
 using namespace std;
 class GameWindow {
 public:
@@ -43,6 +45,8 @@ public:
 	const int WINDOW_HEIGHT = 480;
 	static Camera2D* getCamera();
 	static void showUpperText(std::string text);
+	static int getPoints();
+	static void removePoints(int removePoints);
 
 private:
 	GameObject* groundArray[60][60];
@@ -66,7 +70,10 @@ private:
 	UIButton plantUIButton;
 	Texture monsterButton;
 	UIButton monsterUIButton;
-
+	Texture saveButton;
+	Texture loadButton;
+	UIButton saveUIButton;
+	UIButton loadUIButton;
 	PlantUI plantUI;
 	MonsterUI monsterUI;
 
@@ -79,6 +86,7 @@ private:
 	void runUI();
 	int centerX = 0;
 	int centerY = 0;
+	static int points;
 	const int NEXT_GEN_X = 496;
 	const int NEXT_GEN_Y = 432;
 	const int MOVE_PHASE = 0;
@@ -92,6 +100,11 @@ private:
 	const int wait = 60;
 	static bool showingUpperText;
 	static std::string upperText;
+
+	const int BACK_X = 496;
+	const int BACK_Y = 48;
+	const int BACK_W = 112;
+	const int BACK_H = 64;
 
 };
 

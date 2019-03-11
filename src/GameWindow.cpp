@@ -7,9 +7,12 @@
 
 #include "GameWindow.h"
 
+FileUI saveUI;
+FileUI loadUI;
 Camera2D* GameWindow::camera;
 bool GameWindow::showingUpperText;
 std::string GameWindow::upperText;
+int GameWindow::points = 4;
 GameWindow::GameWindow() {
 	moving = false;
 	internalClock = 0;
@@ -51,6 +54,8 @@ void GameWindow::init(Camera2D* cam)
 	moveButton = LoadTexture("src/img/finishmoving.png");
 	plantButton = LoadTexture("src/img/ui/plantButton.png");
 	monsterButton = LoadTexture("src/img/ui/monsterButton.png");
+	saveButton = LoadTexture("src/img/ui/saveButton.png");
+	loadButton = LoadTexture("src/img/ui/loadButton.png");
 
 	EyeCandy::setBoomR(LoadTexture("src/img/boom_r.png"));
 	EyeCandy::setBoomO(LoadTexture("src/img/boom_o.png"));
@@ -71,8 +76,33 @@ void GameWindow::init(Camera2D* cam)
 	monsterUIButton = UIButton(528,48,32,32);
 	monsterUIButton.setImage(monsterButton);
 	monsterUIButton.addUI(&monsterUI);
+	monsterUI.initEditor(0);
+
+	saveUI = FileUI();
+	saveUI.loadFonts();
+	saveUI.init(true);
+	saveUIButton = UIButton(496,80,32,32);
+	saveUIButton.setImage(saveButton);
+	saveUIButton.addUI(&saveUI);
+
+	loadUI = FileUI();
+	loadUI.loadFonts();
+	loadUI.init(false);
+	loadUIButton = UIButton(528,80,32,32);
+	loadUIButton.setImage(loadButton);
+	loadUIButton.addUI(&loadUI);
+
+	Meat::setMeatTexture(LoadTexture("src/img/meat.png"));
 
 
+}
+void GameWindow::removePoints(int removePoints)
+{
+	points -= removePoints;
+}
+int GameWindow::getPoints()
+{
+	return points;
 }
 void GameWindow::setupLand()
 {
@@ -120,7 +150,7 @@ void GameWindow::tick()
 		GameObject* obj = GameObject::objects[i];
 		obj->tick();
 		obj->setInternalClock(internalClock);
-		if(moving && obj->getName() == "Monster")
+		if(obj != nullptr && moving && obj->getName() == "Monster")
 		{
 			obj->nextMove();
 		}
@@ -134,18 +164,28 @@ void GameWindow::tick()
 			Plant* p = static_cast<Plant*>(temp);
 			if(!(p->getAlive()))
 			{
-				GameObject::objects[i] = NULL;
 				delete(GameObject::objects[i]);
+				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
 		if(temp->getName() == "EyeCandy")
 		{
 			EyeCandy* p = static_cast<EyeCandy*>(temp);
-			if(!(p->getTimeRemaining()<=0))
+			if((p->getTimeRemaining()<=0))
 			{
 				delete(GameObject::objects[i]);
-				GameObject::objects[i] = NULL;
+				GameObject::objects[i] = nullptr;
+				GameObject::objects.erase(GameObject::objects.begin()+i);
+			}
+		}
+		if(temp->getName() == "Meat")
+		{
+			Meat* p = static_cast<Meat*>(temp);
+			if(!(p->isAlive()))
+			{
+				delete(GameObject::objects[i]);
+				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
@@ -326,6 +366,14 @@ void GameWindow::render()
 		GameObject* obj = GameObject::objects[i];
 		obj->render();
 	}
+	for(uint i=0; i<GameObject::objects.size();i++)
+	{
+		GameObject* obj = GameObject::objects[i];
+		if(obj->getName() == "EyeCandy" || obj->getName() == "Meat")
+		{
+			obj->render();
+		}
+	}
 	for(uint x=0; x<60; x++)
 	{
 		for(uint y=0; y<60; y++)
@@ -339,11 +387,31 @@ void GameWindow::drawGUI()
 {
 	plantUI.render();
 	monsterUI.render();
+	saveUI.render();
+	loadUI.render();
 	DrawRectangle(480,0,160,480,WHITE);
 	string genString = "Gen: " + to_string(GameObject::generation);
 
-	plantUIButton.render();
-	monsterUIButton.render();
+	if(!UI::isOpen())
+	{
+		plantUIButton.render();
+		monsterUIButton.render();
+		saveUIButton.render();
+		loadUIButton.render();
+		if(genPhase == MOVE_PHASE)
+		{
+			DrawTexture(moveButton,NEXT_GEN_X,NEXT_GEN_Y,WHITE);
+		}
+		else if(!moving)
+		{
+			DrawTexture(nextGenButton,NEXT_GEN_X,NEXT_GEN_Y,WHITE);
+		}
+	}
+	else
+	{
+		DrawRectangle(BACK_X,BACK_Y,BACK_W,BACK_H,RED);
+		DrawTextEx(GameObject::font,"BACK TO MAP",{506,64},20,0.0f,WHITE);
+	}
 	Vector2 genPos;
 	genPos.x = 496;
 	genPos.y = 16;
@@ -352,14 +420,15 @@ void GameWindow::drawGUI()
 	genPos.y = 16;
 	DrawTextEx(GameObject::font,&genString[0],genPos,24,0.0f,BLACK);
 
-	if(genPhase == MOVE_PHASE)
-	{
-		DrawTexture(moveButton,NEXT_GEN_X,NEXT_GEN_Y,WHITE);
-	}
-	else if(!moving)
-	{
-		DrawTexture(nextGenButton,NEXT_GEN_X,NEXT_GEN_Y,WHITE);
-	}
+	string pointString = "Evolve Pts: " + to_string(GameWindow::points);
+	Vector2 ptPos;
+	ptPos.x = 488;
+	ptPos.y = 128;
+	DrawTextEx(GameObject::font,&pointString[0],ptPos,24,0.0f,BLACK);
+	ptPos.x = 489;
+	ptPos.y = 128;
+	DrawTextEx(GameObject::font,&pointString[0],ptPos,24,0.0f,BLACK);
+
 
 	if(showingUpperText)
 	{
@@ -396,9 +465,12 @@ void GameWindow::doGeneration()
 	for(uint i = 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
-		if(temp->getName() == "Ground" || temp->getName() == "Plant" || temp->getName() == "Monster")
+		if(temp->getName() == "Ground" || temp->getName() == "Plant" || temp->getName() == "Monster"|| temp->getName() == "Meat")
 		{
-			temp->nextGeneration();
+			if(temp != nullptr)
+			{
+				temp->nextGeneration();
+			}
 		}
 		if(temp->getName() == "Plant")
 		{
@@ -406,17 +478,17 @@ void GameWindow::doGeneration()
 			if(!(p->getAlive()))
 			{
 				delete(GameObject::objects[i]);
-				GameObject::objects[i] = NULL;
+				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
-		if(temp->getName() == "Monster")
+		if(temp != nullptr && temp->getName() == "Monster")
 		{
 			Monster* p = static_cast<Monster*>(temp);
 			if(!(p->getAlive()))
 			{
 				delete(GameObject::objects[i]);
-				GameObject::objects[i] = NULL;
+				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
@@ -430,7 +502,7 @@ void GameWindow::doGeneration()
 			if(!(p->getAlive()))
 			{
 				delete(GameObject::objects[i]);
-				GameObject::objects[i] = NULL;
+				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
@@ -497,17 +569,17 @@ void GameWindow::doMove()
 	for(uint i = 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
-		if(temp->getName() == "Monster")
+		if(temp != nullptr && temp->getName() == "Monster")
 		{
 			temp->nextMove();
 		}
-		if(temp->getName() == "Monster")
+		if(temp != nullptr && temp->getName() == "Monster")
 		{
 			Monster* p = static_cast<Monster*>(temp);
 			if(!(p->getAlive()))
 			{
-				GameObject::objects[i] = NULL;
 				delete(GameObject::objects[i]);
+				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
@@ -516,13 +588,13 @@ void GameWindow::doMove()
 }
 void GameWindow::runUI()
 {
-	if(clickUI(NEXT_GEN_X,NEXT_GEN_Y,128,32))
+	if(clickUI(NEXT_GEN_X,NEXT_GEN_Y,128,32) && !UI::isOpen())
 	{
 		if(genPhase == MOVE_PHASE)
 		{
 			for(unsigned int i = 0; i < GameObject::objects.size(); i++)
 			{
-				if(GameObject::objects[i]->getName() == "Monster")
+				if(GameObject::objects[i] != nullptr && GameObject::objects[i]->getName() == "Monster")
 				{
 					Monster* m = static_cast<Monster*>(GameObject::objects[i]);
 					m->resetMovement();
@@ -536,10 +608,31 @@ void GameWindow::runUI()
 			doGeneration();
 		}
 	}
-	monsterUIButton.tick();
-	plantUIButton.tick();
+	if(!UI::isOpen())
+	{
+		monsterUIButton.tick();
+		plantUIButton.tick();
+		saveUIButton.tick();
+		loadUIButton.tick();
+	}
+	else
+	{
+		bool clicking = false;
+		if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+		{
+			int mx = GetMouseX();
+			int my = GetMouseY();
+			clicking = (mx >= BACK_X && my >= BACK_Y && mx <= BACK_X+BACK_W && my <= BACK_Y+BACK_H);
+		}
+		if(clicking)
+		{
+			UI::close();
+		}
+	}
 	plantUI.tick();
 	monsterUI.tick();
+	saveUI.tick();
+	loadUI.tick();
 }
 
 void GameWindow::generatePlants()
@@ -559,7 +652,7 @@ void GameWindow::generatePlants()
 		sp.population = 0;
 		sp.groupSize = 10;
 
-		if(rand()%10<7)
+		if(rand()%10<5)
 		{
 			sp.land = true;
 		}
@@ -715,7 +808,7 @@ bool GameWindow::isMoving()
 {
 	for(unsigned int i = 0; i < GameObject::objects.size(); i++)
 	{
-		if(GameObject::objects[i]->getName() == "Monster" && genPhase == END_PHASE)
+		if(GameObject::objects[i] != nullptr && GameObject::objects[i]->getName() == "Monster" && genPhase == END_PHASE)
 		{
 			Monster* m = static_cast<Monster*>(GameObject::objects[i]);
 			if(m->isMoving())

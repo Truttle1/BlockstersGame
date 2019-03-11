@@ -11,6 +11,7 @@
 class Ground :public GameObject{
 	public:
 		Ground(int ix, int iy,int w, int h,bool newGame);
+		void loadFile(Biome iBiome);
 		virtual ~Ground();
 		void tick();
 		void render();

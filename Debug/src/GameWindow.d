@@ -17,9 +17,17 @@ src/GameWindow.o: ../src/GameWindow.cpp ../src/GameWindow.h \
  ../src/ui/plantui/../../libraries/raylib.h \
  ../src/ui/plantui/../../species/Species.h \
  ../src/ui/monsterui/MonsterUI.h ../src/ui/monsterui/../UI.h \
- ../src/ui/monsterui/../../species/Species.h ../src/ui/UIButton.h \
- ../src/ui/../libraries/raylib.h ../src/ui/UI.h ../src/img/ObjectColors.h \
- ../src/objects/EyeCandy.h
+ ../src/ui/monsterui/../../species/Species.h \
+ ../src/ui/monsterui/TextBox.h \
+ ../src/ui/monsterui/../../libraries/raylib.h \
+ ../src/ui/monsterui/ColorBox.h ../src/ui/monsterui/RadioButton.h \
+ ../src/ui/UIButton.h ../src/ui/../libraries/raylib.h ../src/ui/UI.h \
+ ../src/img/ObjectColors.h ../src/objects/EyeCandy.h \
+ ../src/objects/world/Meat.h ../src/ui/fileui/FileUI.h \
+ ../src/ui/fileui/../UI.h ../src/ui/fileui/../../species/Species.h \
+ ../src/ui/fileui/../../objects/GameObject.h \
+ ../src/ui/fileui/../../objects/world/Ground.h \
+ ../src/ui/fileui/../../objects/world/Monster.h
 
 ../src/GameWindow.h:
 
@@ -83,6 +91,14 @@ src/GameWindow.o: ../src/GameWindow.cpp ../src/GameWindow.h \
 
 ../src/ui/monsterui/../../species/Species.h:
 
+../src/ui/monsterui/TextBox.h:
+
+../src/ui/monsterui/../../libraries/raylib.h:
+
+../src/ui/monsterui/ColorBox.h:
+
+../src/ui/monsterui/RadioButton.h:
+
 ../src/ui/UIButton.h:
 
 ../src/ui/../libraries/raylib.h:
@@ -92,3 +108,17 @@ src/GameWindow.o: ../src/GameWindow.cpp ../src/GameWindow.h \
 ../src/img/ObjectColors.h:
 
 ../src/objects/EyeCandy.h:
+
+../src/objects/world/Meat.h:
+
+../src/ui/fileui/FileUI.h:
+
+../src/ui/fileui/../UI.h:
+
+../src/ui/fileui/../../species/Species.h:
+
+../src/ui/fileui/../../objects/GameObject.h:
+
+../src/ui/fileui/../../objects/world/Ground.h:
+
+../src/ui/fileui/../../objects/world/Monster.h:

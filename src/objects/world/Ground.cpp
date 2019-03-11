@@ -41,6 +41,10 @@ Ground::Ground(int ix, int iy,int w, int h, bool newGame) : super(ix,iy,w,h)
 		createTime = 30;
 	}
 }
+void Ground::loadFile(Biome iBiome)
+{
+	biome = iBiome;
+}
 void Ground::setupWaterGraphics(Texture2D* img0,Texture2D* img1)
 {
 	waterImage[0] = img0;

@@ -8,6 +8,7 @@
 #include "Monster.h"
 Monster::Monster(int ix, int iy, int sp, bool e) : GameObject(ix,iy,8,8)
 {
+	alive = true;
 	name = "Monster";
 	species = sp;
 	arbitraryPopNumber = (rand()%10)+1;
@@ -26,9 +27,22 @@ Monster::Monster(int ix, int iy, int sp, bool e) : GameObject(ix,iy,8,8)
 	flashTime = 0;
 	clickedHere = false;
 }
+void Monster::loadFromFile(int iAge, int iHp, int population)
+{
+	age = iAge;
+	hp = iHp;
+	Species::monsterSpecies[species].population -= arbitraryPopNumber;
+	arbitraryPopNumber = population;
+	Species::monsterSpecies[species].population += arbitraryPopNumber;
+
+}
 Monster::~Monster()
 {
 
+}
+int Monster::getPopulation()
+{
+	return arbitraryPopNumber;
 }
 void Monster::tick()
 {
@@ -216,7 +230,7 @@ void Monster::nextGeneration()
 		Monster* p = new Monster(this->getX()+newX,this->getY()+newY,this->getSpecies(),enemy);
 		GameObject::objects.push_back(p);
 		hp -= monster.size/2;
-		if(rand()%200<10 && monster.enemy)
+		if(rand()%200<10 && monster.enemy && alive)
 		{
 			evolve();
 		}
@@ -337,6 +351,20 @@ void Monster::nextMove()
 		targetX = -1;
 		targetY = -1;
 	}
+	if(monster.carnivore)
+	{
+		for(int i=0; i<GameObject::objects.size();i++)
+		{
+			if(GameObject::objects[i]->getName() == "Meat")
+			{
+				Meat* m = static_cast<Meat*>(GameObject::objects[i]);
+				if(monster.carnivore && CheckCollisionRecs(m->getBounds(),this->getBounds()))
+				{
+					hp += m->eat();
+				}
+			}
+		}
+	}
 }
 void Monster::nextEat()
 {
@@ -417,6 +445,13 @@ void Monster::evolve()
 	int toxicity = monster.toxicity;
 	int groupSize = monster.groupSize;
 	int lifespan = monster.lifespan;
+	int agression = monster.agression;
+	bool carnivore = monster.carnivore;
+
+	if(rand()%100<30)
+	{
+		carnivore = !carnivore;
+	}
 
 	if(rand()%100<20)
 	{
@@ -430,58 +465,58 @@ void Monster::evolve()
 		maxNew--;
 		lifespan+=2;
 	}
-	if(rand()%100<20)
+	if(rand()%100<40)
 	{
 		minDeath--;
 		maxDeath++;
 		lifespan--;
 	}
-	else if(maxDeath-minDeath > 1 && rand()%100<20)
+	else if(maxDeath-minDeath > 1 && rand()%100<40)
 	{
 		minDeath++;
 		maxDeath--;
 		lifespan+=2;
 	}
 
-	if(rand()%100<20)
+	if(rand()%100<40)
 	{
 		toxicity+=2;
 		lifespan--;
 	}
-	else if(toxicity > 0 && rand()%100<20)
+	else if(toxicity > 0 && rand()%100<40)
 	{
 		toxicity--;
 		lifespan+=2;
 	}
-	if(rand()%100<20)
+	if(rand()%100<40)
 	{
 		size+=2;
 		lifespan++;
 		toxicity--;
 	}
-	else if(size < 0 && rand()%100<20)
+	else if(size < 0 && rand()%100<40)
 	{
 		size--;
 		toxicity+=2;
 	}
 
-	if(rand()%100<20)
+	if(rand()%100<40)
 	{
 		metabolism++;
 		speed += 2;
 	}
-	else if(rand()%100<20)
+	else if(rand()%100<40)
 	{
 		metabolism-=2;
 		speed--;
 	}
 
-	if(rand()%100<20)
+	if(rand()%100<40)
 	{
 		strength += 2;
 		resil--;
 	}
-	else if(rand()%100<20)
+	else if(rand()%100<40)
 	{
 		resil += 2;
 		strength--;
@@ -515,6 +550,22 @@ void Monster::evolve()
 	{
 		resil = 1;
 	}
+	if(rand()%100<40)
+	{
+		agression++;
+	}
+	else if(rand()%100<40)
+	{
+		agression--;
+	}
+	if(agression < 0)
+	{
+		agression = 0;
+	}
+	if(agression > 10)
+	{
+		agression = 10;
+	}
 	MonsterSpecies newSp = MonsterSpecies();
 	newSp.land = monster.land;
 	newSp.toxicity = toxicity;
@@ -530,6 +581,8 @@ void Monster::evolve()
 	newSp.strength = strength;
 	newSp.speed = speed;
 	newSp.metabolism = metabolism;
+	newSp.agression = agression;
+	newSp.carnivore = carnivore;
 
 
 	newSp.name = Species::generateName();
@@ -578,7 +631,7 @@ void Monster::evolve()
 	Species::monsterSpecies.push_back(newSp);
 	int newX = ((rand()%5)*8)-16;
 	int newY = ((rand()%5)*8)-16;
-	Monster* p = new Monster(this->getX()+newX,this->getY()+newY,Species::monsterSpecies.size()-1,false);
+	Monster* p = new Monster(this->getX()+newX,this->getY()+newY,Species::monsterSpecies.size()-1,enemy);
 	GameObject::objects.push_back(p);
 	int r = rand()%20;
 	for(int i=0; i<(r)+1;i++)
@@ -617,16 +670,22 @@ void Monster::attackMonsters()
 						if(m->isEnemy() && !isEnemy())
 						{
 							EyeCandy* ec = new EyeCandy(m->getX(),m->getY(),0);
+							objects.push_back(new Meat(m->getX(),m->getY(),Species::monsterSpecies[m->getSpecies()].size+1));
+							objects.push_back(ec);
 						}
 						else
 						{
 							EyeCandy* ec = new EyeCandy(m->getX(),m->getY(),2);
+							objects.push_back(new Meat(m->getX(),m->getY(),Species::monsterSpecies[m->getSpecies()].size+1));
+							objects.push_back(ec);
 						}
 						m->kill();
 					}
 					else if(monster.resil <= Species::monsterSpecies[m->getSpecies()].strength)
 					{
 						EyeCandy* ec = new EyeCandy(getX(),getY(),1);
+						objects.push_back(new Meat(getX(),getY(),Species::monsterSpecies[getSpecies()].size+1));
+						objects.push_back(ec);
 						m->kill();
 					}
 				}
@@ -637,6 +696,16 @@ void Monster::attackMonsters()
 bool Monster::isEnemy()
 {
 	return enemy;
+}
+
+int Monster::getAge()
+{
+	return age;
+}
+
+int Monster::getHP()
+{
+	return hp;
 }
 
 

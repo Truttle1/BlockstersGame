@@ -12,7 +12,7 @@ Texture2D EyeCandy::boom_r;
 EyeCandy::EyeCandy(int ix, int iy, int iImage) : GameObject(ix,iy,8,8)
 {
 	image = iImage;
-	timeRemaining = 45;
+	timeRemaining = 30;
 	name = "EyeCandy";
 }
 
@@ -41,11 +41,10 @@ void EyeCandy::render()
 }
 void EyeCandy::nextGeneration()
 {
-
+	timeRemaining = 0;
 }
 void EyeCandy::nextMove()
 {
-
 }
 void EyeCandy::nextEat()
 {

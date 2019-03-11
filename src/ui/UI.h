@@ -16,6 +16,7 @@ class UI {
 		virtual void toggle()=0;
 		void loadFonts();
 		static bool isOpen();
+		static void close();
 	protected:
 		Font font;
 		Font fontBig;

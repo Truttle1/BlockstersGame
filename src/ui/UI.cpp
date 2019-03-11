@@ -35,3 +35,7 @@ bool UI::isOpen()
 {
 	return open;
 }
+void UI::close()
+{
+	open = false;
+}

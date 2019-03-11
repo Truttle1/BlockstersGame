@@ -17,6 +17,7 @@ class Plant:public GameObject
 	public:
 		Plant(int ix, int iy, int sp);
 		virtual ~Plant();
+		void loadFromFile(int iHp, int iAge, int iPop);
 		void tick();
 		void render();
 		void nextGeneration();
@@ -28,6 +29,10 @@ class Plant:public GameObject
 		void kill();
 		int getEaten(int amount);
 		void removeHp(int amount);
+		int getHP();
+		int getAge();
+		int getPopulation();
+
 	private:
 		int species;
 		bool alive = true;
