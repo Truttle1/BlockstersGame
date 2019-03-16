@@ -71,7 +71,7 @@ void Ground::tick()
 	{
 		createTime = LENGTH_OF_CREATE;
 	}
-	if(biome == FRESHWATER)
+	if(biome == FRESHWATER && GameObject::generation < 2)
 	{
 		if(rand()%100<10 && getSurroundingType(WATER)>=1)
 		{
@@ -136,15 +136,15 @@ void Ground::createNewLand()
 	int surroundingDirt = getSurroundingType(DIRT);
 	int surroundingDesert = getSurroundingType(DESERT);
 	int surroundingMtn = getSurroundingType(MOUNTAIN);
-	if(rand()%150<surroundingDirt*25)
+	if(rand()%120<surroundingDirt*25)
 	{
 		biome = DIRT;
 	}
-	if(rand()%450<surroundingDesert*25)
+	if(rand()%420<surroundingDesert*25)
 	{
 		biome = DESERT;
 	}
-	if(rand()%450<surroundingMtn*25)
+	if(rand()%420<surroundingMtn*25)
 	{
 		biome = MOUNTAIN;
 	}

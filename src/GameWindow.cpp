@@ -30,7 +30,7 @@ void GameWindow::init(Camera2D* cam)
 	camera->rotation = 0.0f;
 
 
-	SetTargetFPS(60);
+	SetTargetFPS(30);
 	InitWindow(GameWindow::WINDOW_WIDTH,GameWindow::WINDOW_HEIGHT,"Blocksters - A Truttle1 Game");
 
 	PlantImg::initTextures();
@@ -125,6 +125,7 @@ void GameWindow::setupLand()
 }
 void GameWindow::tick()
 {
+	cout << GetFPS() << endl;
 	if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
 	{
 		showingUpperText = false;
@@ -144,20 +145,18 @@ void GameWindow::tick()
 	centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
 	internalClock++;
 	GameObject::setGroundArray(groundArray);
-	for(uint i=0; i<GameObject::objects.size();i++)
+	GameObject::objects.shrink_to_fit();
+
+	for(uint i = GameObject::generation < 1 ? 0 : 0; i<GameObject::objects.size();i++)
 	{
 		vector<GameObject*> objects = GameObject::objects;
 		GameObject* obj = GameObject::objects[i];
-		obj->tick();
 		obj->setInternalClock(internalClock);
+		obj->tick();
 		if(obj != nullptr && moving && obj->getName() == "Monster")
 		{
 			obj->nextMove();
 		}
-	}
-
-	for(uint i = 0; i<GameObject::objects.size();i++)
-	{
 		GameObject* temp = GameObject::objects[i];
 		if(temp->getName() == "Plant")
 		{
@@ -190,6 +189,11 @@ void GameWindow::tick()
 			}
 		}
 	}
+	/*
+	for(uint i = 0; i<GameObject::objects.size();i++)
+	{
+
+	}*/
 	moving = isMoving();
 	if(camera->zoom<8.0f)
 	{
@@ -444,6 +448,14 @@ void GameWindow::reset()
 	}
 	this->setupLand();
 	internalClock = 0;
+	GameObject::generation = -15;
+	for(int x = 0; x<60; x++)
+	{
+		for(int y = 0; y<60; y++)
+		{
+			GameObject::fog[x][y].enable();
+		}
+	}
 }
 bool GameWindow::clickUI(int x1, int y1, int x2, int y2)
 {
@@ -550,10 +562,18 @@ void GameWindow::doGeneration()
 					created = true;
 				}
 			}
-			Monster* m = new Monster(rx,ry,c,false);
-			Monster* m1 = new Monster(rx,ry+8,c,false);
-			Monster* m2 = new Monster(rx+8,ry+8,c,false);
-			Monster* m3 = new Monster(rx+8,ry,c,false);
+			int enemyNum = rand()%8+1;
+			if(!Species::monsterSpecies[c].enemy)
+			{
+				Monster* m = new Monster(rx+48,ry,enemyNum,true);
+				Monster* m1 = new Monster(rx+48,ry+8,enemyNum,true);
+				Monster* m2 = new Monster(rx+8,ry+48,enemyNum,true);
+				Monster* m3 = new Monster(rx+8,ry+48,enemyNum,true);
+			}
+			Monster* m = new Monster(rx,ry,c,Species::monsterSpecies[c].enemy);
+			Monster* m1 = new Monster(rx,ry+8,c,Species::monsterSpecies[c].enemy);
+			Monster* m2 = new Monster(rx+8,ry+8,c,Species::monsterSpecies[c].enemy);
+			Monster* m3 = new Monster(rx+8,ry,c,Species::monsterSpecies[c].enemy);
 			GameObject::objects.push_back(m);
 			GameObject::objects.push_back(m1);
 			GameObject::objects.push_back(m2);
@@ -744,7 +764,7 @@ void GameWindow::generateMonsters(bool enemy)
 		sp.highlightColor = ObjectColors::monsterColorsHighlight[t];
 		sp.image = Species::replaceColorsToImage(&sp.image,ObjectColors::CYAN_BLUE,sp.highlightColor);
 		sp.name = Species::generateName();
-		sp.enemy = enemy;
+		sp.enemy = false;
 		Species::monsterSpecies.push_back(sp);
 	}
 	for(unsigned int i=1; i<10;i++)

@@ -16,6 +16,34 @@ Plant::Plant(int ix, int iy, int sp) : GameObject(ix,iy,8,8)
 	Species::plantSpecies[species].population += arbitraryPopNumber;
 	age = 0;
 	hp = (Species::plantSpecies[species].size/3)+1;
+
+	bool onLand = true;
+	for(uint i = 0; i<GameObject::objects.size();i++)
+	{
+		GameObject* g = GameObject::objects[i];
+		if(g->getName() == "Ground")
+		{
+			Ground* g2 = static_cast<Ground*>(g);
+			if(CheckCollisionRecs(g2->getBounds(),this->getBounds()))
+			{
+				if(g2->getBiome() == WATER || g2->getBiome() == FRESHWATER)
+				{
+					onLand = false;
+				}
+			}
+		}
+	}
+	if(!Species::plantSpecies[this->species].land && onLand)
+	{
+		this->kill();
+		//printf("LAND IS BAD\nSPECIES %d HAS LAND VALUE OF %d\n",this->species,Species::plantSpecies[this->species].land);
+	}
+	else if(Species::plantSpecies[this->species].land && !onLand)
+	{
+		this->kill();
+		//printf("WATER IS BAD\nSPECIES %d HAS LAND VALUE OF %d\n",this->species,Species::plantSpecies[this->species].land);
+	}
+	curBiome = getBiome();
 }
 Plant::~Plant()
 {
@@ -73,119 +101,87 @@ void Plant::render()
 void Plant::nextGeneration()
 {
 	color = GREEN;
-	try
+	if(hp <= 0)
 	{
-		if(hp <= 0)
-		{
-			kill();
-		}
-		bool onLand = true;
-		for(uint i = 0; i<GameObject::objects.size();i++)
-		{
-			GameObject* g = GameObject::objects[i];
-			if(g->getName() == "Ground")
-			{
-				Ground* g2 = dynamic_cast<Ground*>(g);
-				if(CheckCollisionRecs(g2->getBounds(),this->getBounds()))
-				{
-					if(g2->getBiome() == WATER || g2->getBiome() == FRESHWATER)
-					{
-						onLand = false;
-					}
-				}
-			}
-		}
-		if(!Species::plantSpecies[this->species].land && onLand)
-		{
-			this->kill();
-			//printf("LAND IS BAD\nSPECIES %d HAS LAND VALUE OF %d\n",this->species,Species::plantSpecies[this->species].land);
-		}
-		else if(Species::plantSpecies[this->species].land && !onLand)
-		{
-			this->kill();
-			//printf("WATER IS BAD\nSPECIES %d HAS LAND VALUE OF %d\n",this->species,Species::plantSpecies[this->species].land);
-		}
-		//Plants at the same location die.
-		killSameLocation();
-		//Plants die when they live longer than their lifespan.
-		if(age>Species::plantSpecies[this->species].lifespan)
-		{
-			this->kill();
-		}
-		//Death by overcrowding
-		if(getNeighborhood()>Species::plantSpecies[this->species].maxDeath && rand()%100<75)
-		{
-			this->kill();
-		}
-		//Death by lonliness
-		if(getNeighborhood()<Species::plantSpecies[this->species].minDeath && rand()%100<33)
-		{
-			this->kill();
-		}
-		int repValue;
-		if(Species::plantSpecies[this->species].land)
-		{
-			if(getBiome() == DIRT)
-			{
-				repValue = rand()%20;
-			}
-			else if(getBiome() == TUNDRA)
-			{
-				repValue = rand()%40;
-			}
-			else if(getBiome() == MOUNTAIN)
-			{
-				repValue = rand()%35;
-			}
-			else if(getBiome() == DESERT)
-			{
-				repValue = rand()%(30-Species::plantSpecies[this->species].nutrients);
-			}
-			else if(getBiome() == SNOW)
-			{
-				repValue = rand()%(35-Species::plantSpecies[this->species].nutrients);
-			}
-			else if(getBiome() == BEACH)
-			{
-				repValue = rand()%(25-Species::plantSpecies[this->species].nutrients);
-			}
-		}
-		else
-		{
-			repValue = rand()%26;
-		}
-		//Reproduce
-		if(age>=(Species::plantSpecies[this->species].lifespan/8) && getNeighborhood()<Species::plantSpecies[this->species].maxNew && getNeighborhood()>Species::plantSpecies[this->species].minNew && repValue<15)
-		{
-			int newX = ((rand()%5)*8)-16;
-			int newY = ((rand()%5)*8)-16;
-			Plant* p = new Plant(this->getX()+newX,this->getY()+newY,this->getSpecies());
-			GameObject::objects.push_back(p);
-			if(rand()%10000<5 && !GameObject::evolutionOccuredYet && alive)
-			{
-				evolve();
-				GameObject::evolutionOccuredYet = true;
-			}
-		}
-		if(x<0 || x>=960)
-		{
-			this->kill();
-		}
-		if(y<0 || y>=960)
-		{
-			this->kill();
-		}
-		//Age goes up.
-		age++;
-		if(age>2)
-		{
-		}
+		kill();
+	}
 
-	}
-	catch(int e)
+	//Plants at the same location die.
+	killSameLocation();
+	//Plants die when they live longer than their lifespan.
+	if(age>Species::plantSpecies[this->species].lifespan)
 	{
-		printf("EXCEPTION %d HAPPENED!!!\n",e);
+		this->kill();
 	}
+	//Death by overcrowding
+	if(getNeighborhood()>Species::plantSpecies[this->species].maxDeath && rand()%100<75)
+	{
+		this->kill();
+	}
+	//Death by lonliness
+	if(getNeighborhood()<Species::plantSpecies[this->species].minDeath && rand()%100<33)
+	{
+		this->kill();
+	}
+	int repValue;
+	if(Species::plantSpecies[this->species].land)
+	{
+		if(curBiome == DIRT)
+		{
+			repValue = rand()%20;
+		}
+		else if(curBiome == TUNDRA)
+		{
+			repValue = rand()%40;
+		}
+		else if(curBiome == MOUNTAIN)
+		{
+			repValue = rand()%35;
+		}
+		else if(curBiome == DESERT)
+		{
+			repValue = rand()%(30-Species::plantSpecies[this->species].nutrients);
+		}
+		else if(curBiome == SNOW)
+		{
+			repValue = rand()%(35-Species::plantSpecies[this->species].nutrients);
+		}
+		else if(curBiome == BEACH)
+		{
+			repValue = rand()%(25-Species::plantSpecies[this->species].nutrients);
+		}
+	}
+	else
+	{
+		repValue = rand()%26;
+	}
+	//Reproduce
+	if(age>=(Species::plantSpecies[this->species].lifespan/8) && getNeighborhood()<Species::plantSpecies[this->species].maxNew && getNeighborhood()>Species::plantSpecies[this->species].minNew && repValue<15)
+	{
+		int newX = ((rand()%5)*8)-16;
+		int newY = ((rand()%5)*8)-16;
+		Plant* p = new Plant(this->getX()+newX,this->getY()+newY,this->getSpecies());
+		GameObject::objects.push_back(p);
+		if(rand()%10000<5 && !GameObject::evolutionOccuredYet && alive)
+		{
+			evolve();
+			GameObject::evolutionOccuredYet = true;
+		}
+	}
+	if(x<0 || x>=960)
+	{
+		this->kill();
+	}
+	if(y<0 || y>=960)
+	{
+		this->kill();
+	}
+	//Age goes up.
+	age++;
+	if(age>2)
+	{
+	}
+
 }
 
 bool Plant::getAlive()
@@ -220,7 +216,7 @@ void Plant::killSameLocation()
 		GameObject* temp = GameObject::objects[i];
 		if(temp->getX() == this->getX() && temp->getY() == this->getY() && temp != this && temp->getName() == "Plant")
 		{
-			Plant* p = dynamic_cast<Plant*>(temp);
+			Plant* p = static_cast<Plant*>(temp);
 			if(p->getAlive() && Species::plantSpecies[p->getSpecies()].toxicity > Species::plantSpecies[species].size)
 			{
 				p->kill();
@@ -433,14 +429,14 @@ Biome Plant::getBiome()
 		GameObject* g = GameObject::objects[i];
 		if(g->getName() == "Ground")
 		{
-			Ground* g2 = dynamic_cast<Ground*>(g);
+			Ground* g2 = static_cast<Ground*>(g);
 			if(CheckCollisionRecs(g2->getBounds(),this->getBounds()))
 			{
 				return g2->getBiome();
 			}
 		}
 	}
-	return NIL;
+	return DIRT;
 }
 void Plant::removeFog()
 {

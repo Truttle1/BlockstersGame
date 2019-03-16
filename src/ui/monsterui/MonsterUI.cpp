@@ -8,6 +8,8 @@
 #include <stdio.h>
 
 #include "MonsterUI.h"
+#include "../../objects/world/Monster.h"
+#include "../../img/MonsterImg.h"
 typedef UI super;
 MonsterUI::MonsterUI() : super(){
 	running = false;
@@ -277,6 +279,229 @@ void MonsterUI::drawEditScreen()
 	DrawRectangle(276,248,4,190,BLUE);
 	DrawTexture(leftButton,leftButtonX,leftButtonY,WHITE);
 	DrawTexture(rightButton,rightButtonX-190,rightButtonY,WHITE);
+	DrawTexture(rightButton,rightButtonX-190,rightButtonY,WHITE);
+	DrawRectangle(saveButtonX,saveButtonY,64,32,BLACK);
+	DrawTextEx(font,"Save",{saveButtonX+8.0f,saveButtonY+4.0f},24.0f,0.0f,WHITE);
+	DrawTextEx(font,"Save",{saveButtonX+9.0f,saveButtonY+4.0f},24.0f,0.0f,WHITE);
+}
+
+void MonsterUI::saveMonster()
+{
+	MonsterSpecies monster = Species::monsterSpecies[curViewing];
+	int minNew = monster.minNew;
+	int maxNew = monster.maxNew;
+	int minDeath = monster.minDeath;
+	int maxDeath = monster.maxDeath;
+	int metabolism = monster.metabolism;
+	int speed = monster.speed;
+
+	int resil = monster.resil;
+	int strength = monster.strength;
+
+	int size = monster.size;
+	int toxicity = monster.toxicity;
+	int groupSize = monster.groupSize;
+	int lifespan = monster.lifespan;
+	int agression = monster.agression;
+	bool carnivore = monster.carnivore;
+
+	if(rand()%100<30)
+	{
+		carnivore = !carnivore;
+	}
+
+	if(rand()%100<20)
+	{
+		minNew--;
+		maxNew++;
+		lifespan--;
+	}
+	else if(maxNew-minNew > 1 && rand()%100<20)
+	{
+		minNew++;
+		maxNew--;
+		lifespan+=2;
+	}
+	if(rand()%100<40)
+	{
+		minDeath--;
+		maxDeath++;
+		lifespan--;
+	}
+	else if(maxDeath-minDeath > 1 && rand()%100<40)
+	{
+		minDeath++;
+		maxDeath--;
+		lifespan+=2;
+	}
+
+	if(rand()%100<40)
+	{
+		toxicity+=2;
+		lifespan--;
+	}
+	else if(toxicity > 0 && rand()%100<40)
+	{
+		toxicity--;
+		lifespan+=2;
+	}
+	if(rand()%100<40)
+	{
+		size+=2;
+		lifespan++;
+		toxicity--;
+	}
+	else if(size < 0 && rand()%100<40)
+	{
+		size--;
+		toxicity+=2;
+	}
+
+	if(rand()%100<40)
+	{
+		metabolism++;
+		speed += 2;
+	}
+	else if(rand()%100<40)
+	{
+		metabolism-=2;
+		speed--;
+	}
+
+	if(rand()%100<40)
+	{
+		strength += 2;
+		resil--;
+	}
+	else if(rand()%100<40)
+	{
+		resil += 2;
+		strength--;
+	}
+
+	if(minNew<0)
+	{
+		minNew = 0;
+	}
+	if(minDeath<0)
+	{
+		minDeath = 0;
+	}
+	if(lifespan<1)
+	{
+		lifespan = 1;
+	}
+	if(metabolism < 1)
+	{
+		metabolism = 1;
+	}
+	if(speed < 1)
+	{
+		speed = 1;
+	}
+	if(strength < 1)
+	{
+		strength = 1;
+	}
+	if(resil < 1)
+	{
+		resil = 1;
+	}
+	if(rand()%100<40)
+	{
+		agression++;
+	}
+	else if(rand()%100<40)
+	{
+		agression--;
+	}
+	if(agression < 0)
+	{
+		agression = 0;
+	}
+	if(agression > 10)
+	{
+		agression = 10;
+	}
+	MonsterSpecies newSp = MonsterSpecies();
+	newSp.land = monster.land;
+	newSp.toxicity = toxicity;
+	newSp.size = size;
+	newSp.lifespan = lifespan;
+	newSp.groupSize = groupSize;
+	newSp.minNew = minNew;
+	newSp.maxNew = maxNew;
+	newSp.minDeath = minDeath;
+	newSp.maxDeath = maxDeath;
+
+	newSp.resil = resil;
+	newSp.strength = strength;
+	newSp.speed = speed;
+	newSp.metabolism = metabolism;
+	newSp.agression = agression;
+	newSp.carnivore = carnivore;
+
+
+	newSp.name = Species::generateName();
+	newSp.bodyColor = monster.bodyColor;
+	newSp.eyeColor = monster.eyeColor;
+	newSp.highlightColor = monster.highlightColor;
+	newSp.enemy = true;
+	bool replacedImage = false;
+	replacedImage = true;
+	if(rand()%5<=2)
+	{
+		newSp.image = MonsterImg::basic2;
+	}
+	else if(rand()%5<=2)
+	{
+		newSp.image = MonsterImg::basic1;
+	}
+	else
+	{
+		newSp.image = MonsterImg::basic0;
+	}
+	if(rand()%100<20)
+	{
+		int r = rand()%ObjectColors::monsterColorsEyes.size();
+		newSp.eyeColor = ObjectColors::monsterColorsEyes[r];
+	}
+	if(rand()%100<80)
+	{
+		int h = rand()%ObjectColors::monsterColorsHighlight.size();
+		newSp.highlightColor = ObjectColors::monsterColorsHighlight[h];
+	}
+	if(replacedImage)
+	{
+		int r = rand()%ObjectColors::monsterColorsEyes.size();
+		newSp.eyeColor = ObjectColors::monsterColorsEyes[r];
+		int h = rand()%ObjectColors::monsterColorsHighlight.size();
+		newSp.highlightColor = ObjectColors::monsterColorsHighlight[h];
+		newSp.image = Species::replaceColorsToImage(&newSp.image,monster.highlightColor,newSp.highlightColor);
+		newSp.image = Species::replaceColorsToImage(&newSp.image,monster.eyeColor,newSp.eyeColor);
+	}
+	else
+	{
+		newSp.image = Species::replaceColorsToImage(&newSp.image,ObjectColors::PLANT_GREEN,newSp.bodyColor);
+		newSp.image = Species::replaceColorsToImage(&newSp.image,ObjectColors::ROSE_RED,newSp.eyeColor);
+	}
+	Species::monsterSpecies.push_back(newSp);
+	int monsterX;
+	int monsterY;
+	int newX = ((rand()%5)*8)-16;
+	int newY = ((rand()%5)*8)-16;
+	Monster* p = new Monster(monsterX+newX,monsterY+newY,Species::monsterSpecies.size()-1,true);
+	GameObject::objects.push_back(p);
+	int r = rand()%5;
+	for(int i=0; i<(r)+1;i++)
+	{
+		newX = ((rand()%6)*8)-32;
+		newY = ((rand()%6)*8)-32;
+		Monster* p = new Monster(monsterX+newX,monsterY+newY,Species::monsterSpecies.size()-1,true);
+		Monster* p1 = new Monster(monsterX+newX,monsterY+newY+8,Species::monsterSpecies.size()-1,true);
+		GameObject::objects.push_back(p);
+		GameObject::objects.push_back(p1);
+	}
 }
 
 void MonsterUI::calculateUpdates()

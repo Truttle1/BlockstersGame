@@ -44,6 +44,10 @@ class MonsterUI : public UI
 		int leftButtonY = 432;
 		int rightButtonX = 432;
 		int rightButtonY = 432;
+
+		float saveButtonX = 360;
+		float saveButtonY = 432;
+
 		void clickLeft();
 		void clickRight();
 		void drawEditScreen();
@@ -75,7 +79,7 @@ class MonsterUI : public UI
 		int metaUpdate;
 
 		void calculateUpdates();
-
+		void saveMonster();
 };
 
 #endif /* UI_MONSTERUI_PLANTUI_H_ */

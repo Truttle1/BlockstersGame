@@ -525,7 +525,7 @@ void FileUI::save(std::string filename)
 				file << ",";
 				file << to_string(y).c_str();
 				file << ",";
-				file << 0;//to_string(GameObject::fog[x][y].isVisible()).c_str();
+				file << to_string(GameObject::fog[x][y].isVisible()).c_str();
 				file << "\n";
 			}
 		}

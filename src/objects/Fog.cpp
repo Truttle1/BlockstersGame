@@ -38,3 +38,8 @@ bool Fog::isVisible()
 {
 	return visible;
 }
+
+void Fog::enable()
+{
+	visible = true;
+}

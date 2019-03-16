@@ -631,15 +631,15 @@ void Monster::evolve()
 	Species::monsterSpecies.push_back(newSp);
 	int newX = ((rand()%5)*8)-16;
 	int newY = ((rand()%5)*8)-16;
-	Monster* p = new Monster(this->getX()+newX,this->getY()+newY,Species::monsterSpecies.size()-1,enemy);
+	Monster* p = new Monster(this->getX()+newX,this->getY()+newY,Species::monsterSpecies.size()-1,true);
 	GameObject::objects.push_back(p);
-	int r = rand()%20;
+	int r = rand()%5;
 	for(int i=0; i<(r)+1;i++)
 	{
 		newX = ((rand()%6)*8)-32;
 		newY = ((rand()%6)*8)-32;
-		Monster* p = new Monster(this->getX()+newX,this->getY()+newY,Species::monsterSpecies.size()-1,false);
-		Monster* p1 = new Monster(this->getX()+newX,this->getY()+newY+8,Species::monsterSpecies.size()-1,false);
+		Monster* p = new Monster(this->getX()+newX,this->getY()+newY,Species::monsterSpecies.size()-1,true);
+		Monster* p1 = new Monster(this->getX()+newX,this->getY()+newY+8,Species::monsterSpecies.size()-1,true);
 		GameObject::objects.push_back(p);
 		GameObject::objects.push_back(p1);
 	}
@@ -663,9 +663,13 @@ void Monster::attackMonsters()
 				{
 					ok = false;
 				}
+				if(m->getAge() < 2 || age < 1)
+				{
+					ok = false;
+				}
 				if(ok)
 				{
-					if(monster.strength >= Species::monsterSpecies[m->getSpecies()].resil)
+					if(monster.strength >= Species::monsterSpecies[m->getSpecies()].resil && m->getAge())
 					{
 						if(m->isEnemy() && !isEnemy())
 						{

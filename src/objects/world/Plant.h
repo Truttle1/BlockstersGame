@@ -45,6 +45,7 @@ class Plant:public GameObject
 		void killSameLocation();
 		void evolve();
 		Biome getBiome();
+		Biome curBiome;
 		void removeFog();
 };
 

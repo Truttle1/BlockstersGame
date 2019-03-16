@@ -16,6 +16,7 @@ class Fog {
 		void disable();
 		void render();
 		bool isVisible();
+		void enable();
 
 	private:
 		bool visible;
