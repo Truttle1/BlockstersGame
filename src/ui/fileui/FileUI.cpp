@@ -241,7 +241,8 @@ void FileUI::load(std::string filename)
 			ms.image.height = 8;
 			ms.image.width = 8;
 			ms.image = MonsterImg::basic0;
-			ms.carnivore = false;
+			printf("carn\n");
+			ms.carnivore = stoi(result[19]);
 			Species::monsterSpecies.push_back(ms);
 		}
 		if(result[0].find("GROUND") != string::npos)
@@ -360,6 +361,18 @@ void FileUI::save(std::string filename)
 		file << "GEN,";
 		file << to_string(GameObject::generation);
 		file << "\n";
+		for(unsigned int i = 0; i < Species::plantsDiscovered.size(); i++)
+		{
+			file << "PLNT_DISCOVERED," << Species::plantsDiscovered[i] << "\n";
+		}
+		for(unsigned int i = 0; i < Species::monstersDiscovered.size(); i++)
+		{
+			file << "AIMONSTERS_DISCOVERED," << Species::monstersDiscovered[i] << "\n";
+		}
+		for(unsigned int i = 0; i < Species::plMonstersDiscovered.size(); i++)
+		{
+			file << "PLMONSTERS_DISCOVERED," << Species::plMonstersDiscovered[i] << "\n";
+		}
 		for(unsigned int i = 0; i < Species::plantSpecies.size(); i++)
 		{
 			file << "PSPECIES,";
@@ -481,6 +494,8 @@ void FileUI::save(std::string filename)
 			file << to_string(Species::monsterSpecies[i].agression);
 			file << ",";
 			file << to_string(Species::monsterSpecies[i].enemy);
+			file << ",";
+			file << to_string(Species::monsterSpecies[i].carnivore);
 			file << "\n";
 
 			file << "M_COLOR0";

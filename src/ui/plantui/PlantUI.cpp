@@ -43,8 +43,12 @@ void PlantUI::render()
 	if(running)
 	{
 		DrawRectangle(0,0,480,480,WHITE);
-		DrawTexturePro(Species::plantSpecies[curViewing].image,srcRect,destRect,origin,0,WHITE);
-		drawStats();
+		if(Species::plantsDiscovered.size()>0)
+		{
+			curViewing = Species::plantsDiscovered[index];
+			DrawTexturePro(Species::plantSpecies[curViewing].image,srcRect,destRect,origin,0,WHITE);
+			drawStats();
+		}
 		DrawTexture(leftButton,leftButtonX,leftButtonY,WHITE);
 		DrawTexture(rightButton,rightButtonX,rightButtonY,WHITE);
 
@@ -73,7 +77,7 @@ bool PlantUI::getRunning()
 }
 void PlantUI::drawStats()
 {
-	std::string num = "Plant #" + std::to_string(curViewing);
+	std::string num = "Plant #" + std::to_string(index);
 	std::string pop = "Population: " + std::to_string(Species::plantSpecies[curViewing].population);
 	DrawTextEx(font,num.c_str(),{256,64},48.0f,0.0f,BLACK);
 	DrawTextEx(font,Species::plantSpecies[curViewing].name.c_str(),{256,108},24.0f,0.0f,BLACK);
@@ -133,16 +137,16 @@ void PlantUI::drawStats()
 }
 void PlantUI::clickLeft()
 {
-	if(curViewing>0)
+	if(index>0)
 	{
-		curViewing--;
+		index--;
 	}
 }
 void PlantUI::clickRight()
 {
-	curViewing++;
-	if(curViewing>=Species::plantSpecies.size())
+	index++;
+	if(index>=Species::plantsDiscovered.size())
 	{
-		curViewing = Species::plantSpecies.size()-1;
+		index = Species::plantsDiscovered.size()-1;
 	}
 }

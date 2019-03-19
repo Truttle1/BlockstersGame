@@ -8,6 +8,7 @@
 #include "Plant.h"
 #include "../../species/Species.h"
 #include <iostream>
+#include <algorithm>
 Plant::Plant(int ix, int iy, int sp) : GameObject(ix,iy,8,8)
 {
 	name = "Plant";
@@ -96,6 +97,10 @@ void Plant::render()
 	if(!GameObject::fog[normX][normY].isVisible())
 	{
 		DrawTexture(Species::plantSpecies[this->species].image,x,y,WHITE);
+		if(!(std::find(Species::plantsDiscovered.begin(),Species::plantsDiscovered.end(),species) != Species::plantsDiscovered.end()))
+		{
+			Species::plantsDiscovered.push_back(species);
+		}
 	}
 }
 void Plant::nextGeneration()

@@ -23,6 +23,7 @@ class PlantUI : public UI
 	private:
 		bool running;
 		unsigned int curViewing = 0;
+		unsigned int index = 0;
 		float startX = 128.0f;
 		float startY = 128.0f;
 		float size = 16.0f;

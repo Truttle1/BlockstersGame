@@ -8,6 +8,9 @@
 #include "Species.h"
 std::vector<PlantSpecies> Species::plantSpecies;
 std::vector<MonsterSpecies> Species::monsterSpecies;
+std::vector<int> Species::plantsDiscovered;
+std::vector<int> Species::monstersDiscovered;
+std::vector<int> Species::plMonstersDiscovered;
 
 
 std::string Species::generateName()

@@ -672,6 +672,10 @@ void MonsterUI::drawStats()
 	DrawTextEx(font,spd.c_str(),{16,372},24.0f,0.0f,BLACK);
 	std::string met = "Requires " + std::to_string(Species::monsterSpecies[curViewing].metabolism) + " nutrients per generation.";
 	DrawTextEx(font,met.c_str(),{16,392},24.0f,0.0f,BLACK);
+	if(Species::monsterSpecies[curViewing].carnivore)
+	{
+		DrawTextEx(font,"CARNIVORE",{256,220},24.0f,0.0f,BLACK);
+	}
 }
 void MonsterUI::clickLeft()
 {

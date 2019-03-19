@@ -69,6 +69,9 @@ class Species
 	public:
 		static std::vector<PlantSpecies> plantSpecies;
 		static std::vector<MonsterSpecies> monsterSpecies;
+		static std::vector<int> plantsDiscovered;
+		static std::vector<int> plMonstersDiscovered;
+		static std::vector<int> monstersDiscovered;
 
 		void init();
 		static std::string generateName();
