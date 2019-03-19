@@ -80,6 +80,9 @@ class MonsterUI : public UI
 
 		void calculateUpdates();
 		void saveMonster();
+
+		int editButtonX = 300;
+		int editButtonY = 432;
 };
 
 #endif /* UI_MONSTERUI_PLANTUI_H_ */

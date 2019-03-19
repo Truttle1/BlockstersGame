@@ -63,6 +63,9 @@ typedef unsigned int uint;
 			void setWidth(int w);
 			void setHeight(int h);
 			static int internalClock;
+			int mouseX;
+			int mouseY;
+			bool clickedHere;
 			//@return the pointer of the object at location [i] in the vector
 			GameObject* getObject(uint i)
 			{
@@ -73,6 +76,7 @@ typedef unsigned int uint;
 			static int worldMouseX;
 			static int worldMouseY;
 			bool clicked;
+			bool getClicking();
 
 
 	};

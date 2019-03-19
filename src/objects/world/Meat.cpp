@@ -6,13 +6,16 @@
  */
 
 #include "Meat.h"
+#include "../../GameWindow.h"
 Texture2D Meat::image;
-Meat::Meat(int ix, int iy, int iNutrients) : GameObject(ix,iy,8,8)
+Meat::Meat(int ix, int iy, int iNutrients, int iSpecies) : GameObject(ix,iy,8,8)
 {
 	nutrients = iNutrients;
 	timeLeft = 4;
 	name = "Meat";
 	alive = true;
+	species = iSpecies;
+	clickedHere = false;
 }
 
 Meat::~Meat() {
@@ -58,7 +61,12 @@ void Meat::setMeatTexture(Texture2D img)
 }
 void Meat::tick()
 {
-
+	getClicking();
+	if(clickedHere)
+	{
+		string meatType = Species::monsterSpecies[species].name;
+		GameWindow::showUpperText("Meat of " + meatType + "\nContains " + to_string(nutrients) + " HP of Nutrients");
+	}
 }
 void Meat::render()
 {

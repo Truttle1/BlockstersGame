@@ -34,6 +34,8 @@ void Monster::loadFromFile(int iAge, int iHp, int population)
 	Species::monsterSpecies[species].population -= arbitraryPopNumber;
 	arbitraryPopNumber = population;
 	Species::monsterSpecies[species].population += arbitraryPopNumber;
+	targetX = -1;
+	targetY = -1;
 
 }
 Monster::~Monster()
@@ -353,7 +355,8 @@ void Monster::nextMove()
 	}
 	if(monster.carnivore)
 	{
-		for(int i=0; i<GameObject::objects.size();i++)
+		cout << "CARNIVORE" << endl;
+		for(int i=3600; i<GameObject::objects.size();i++)
 		{
 			if(GameObject::objects[i]->getName() == "Meat")
 			{
@@ -620,13 +623,15 @@ void Monster::evolve()
 		newSp.eyeColor = ObjectColors::monsterColorsEyes[r];
 		int h = rand()%ObjectColors::monsterColorsHighlight.size();
 		newSp.highlightColor = ObjectColors::monsterColorsHighlight[h];
+		newSp.image = Species::replaceColorsToImage(&newSp.image,ObjectColors::PLANT_GREEN,newSp.bodyColor);
+		newSp.image = Species::replaceColorsToImage(&newSp.image,ObjectColors::ROSE_RED,newSp.highlightColor);
+		newSp.image = Species::replaceColorsToImage(&newSp.image,ObjectColors::DARK_BLACK,newSp.eyeColor);
+
 		newSp.image = Species::replaceColorsToImage(&newSp.image,monster.highlightColor,newSp.highlightColor);
 		newSp.image = Species::replaceColorsToImage(&newSp.image,monster.eyeColor,newSp.eyeColor);
 	}
 	else
 	{
-		newSp.image = Species::replaceColorsToImage(&newSp.image,ObjectColors::PLANT_GREEN,newSp.bodyColor);
-		newSp.image = Species::replaceColorsToImage(&newSp.image,ObjectColors::ROSE_RED,newSp.eyeColor);
 	}
 	Species::monsterSpecies.push_back(newSp);
 	int newX = ((rand()%5)*8)-16;
@@ -667,20 +672,24 @@ void Monster::attackMonsters()
 				{
 					ok = false;
 				}
+				if(!enemy && !m->isEnemy())
+				{
+					ok = false;
+				}
 				if(ok)
 				{
 					if(monster.strength >= Species::monsterSpecies[m->getSpecies()].resil && m->getAge())
 					{
-						if(m->isEnemy() && !isEnemy())
+						if(!isEnemy())
 						{
 							EyeCandy* ec = new EyeCandy(m->getX(),m->getY(),0);
-							objects.push_back(new Meat(m->getX(),m->getY(),Species::monsterSpecies[m->getSpecies()].size+1));
+							objects.push_back(new Meat(m->getX(),m->getY(),Species::monsterSpecies[m->getSpecies()].size+1,m->getSpecies()));
 							objects.push_back(ec);
 						}
 						else
 						{
 							EyeCandy* ec = new EyeCandy(m->getX(),m->getY(),2);
-							objects.push_back(new Meat(m->getX(),m->getY(),Species::monsterSpecies[m->getSpecies()].size+1));
+							objects.push_back(new Meat(m->getX(),m->getY(),Species::monsterSpecies[m->getSpecies()].size+1,m->getSpecies()));
 							objects.push_back(ec);
 						}
 						m->kill();
@@ -688,9 +697,9 @@ void Monster::attackMonsters()
 					else if(monster.resil <= Species::monsterSpecies[m->getSpecies()].strength)
 					{
 						EyeCandy* ec = new EyeCandy(getX(),getY(),1);
-						objects.push_back(new Meat(getX(),getY(),Species::monsterSpecies[getSpecies()].size+1));
+						objects.push_back(new Meat(getX(),getY(),Species::monsterSpecies[getSpecies()].size+1,getSpecies()));
 						objects.push_back(ec);
-						m->kill();
+						kill();
 					}
 				}
 			}

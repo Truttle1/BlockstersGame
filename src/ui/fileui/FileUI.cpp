@@ -7,6 +7,7 @@
 
 #include "FileUI.h"
 #include <stdio.h>
+#include "../../img/MonsterImg.h"
 typedef UI super;
 FileUI::FileUI() : super(){
 	running = false;
@@ -89,7 +90,14 @@ void FileUI::loadUI()
 	if(IsKeyPressed(KEY_ENTER) && !saving && running)
 	{
 		std::string select = std::to_string(selection);
-		load("file" + select + ".blkstrs");
+		try
+		{
+			load("file" + select + ".blkstrs");
+		}
+		catch (const std::exception& e)
+		{
+			cout << "EXCEPTION " << e.what() << endl;
+		}
 	}
 }
 void FileUI::render()
@@ -140,8 +148,12 @@ void FileUI::load(std::string filename)
 	for(uint i = 0; i < GameObject::objects.size(); i++)
 	{
 		delete GameObject::objects[i];
+		GameObject::objects[i] = nullptr;
 	}
 	GameObject::objects.clear();
+	Species::plantSpecies.clear();
+	Species::monsterSpecies.clear();
+	GameObject::objects.shrink_to_fit();
 	std::ifstream file;
 	file.open(filename);
 	while(!file.eof())
@@ -167,62 +179,70 @@ void FileUI::load(std::string filename)
 			printf("%d",stoi(result[1]));
 			printf("\n");
 			int species = stoi(result[1].c_str());
-			Species::plantSpecies[species].minNew = stoi(result[2]);
-			Species::plantSpecies[species].maxNew = stoi(result[3]);
-			Species::plantSpecies[species].minDeath = stoi(result[4]);
-			Species::plantSpecies[species].maxDeath = stoi(result[5]);
-			Species::plantSpecies[species].toxicity = stoi(result[6]);
-			Species::plantSpecies[species].size = stoi(result[7]);
-			Species::plantSpecies[species].nutrients = stoi(result[8]);
-			Species::plantSpecies[species].groupSize = stoi(result[9]);
-			Species::plantSpecies[species].land = stoi(result[10]);
-			Species::plantSpecies[species].name = result[11];
-			Species::plantSpecies[species].population = stoi(result[12]);
-			Species::plantSpecies[species].lifespan = stoi(result[13]);
-			Species::plantSpecies[species].image.height = 8;
-			Species::plantSpecies[species].image.width = 8;
+			PlantSpecies ps;
+			ps.minNew = stoi(result[2]);
+			ps.maxNew = stoi(result[3]);
+			ps.minDeath = stoi(result[4]);
+			ps.maxDeath = stoi(result[5]);
+			ps.toxicity = stoi(result[6]);
+			ps.size = stoi(result[7]);
+			ps.nutrients = stoi(result[8]);
+			ps.groupSize = stoi(result[9]);
+			ps.land = stoi(result[10]);
+			ps.name = result[11];
+			ps.population = stoi(result[12]);
+			ps.lifespan = stoi(result[13]);
+			cout << "IMAGE" << endl;
+			ps.image.height = 8;
+			ps.image.width = 8;
+			ps.image = MonsterImg::basic0;
+			Species::plantSpecies.push_back(ps);
 		}
 		if(result[0].find("MSPECIES") != string::npos)
 		{
+			MonsterSpecies ms;
 			printf("%d",stoi(result[1]));
 			printf("\n");
 			int species = stoi(result[1].c_str());
-			Species::monsterSpecies[species].minNew = stoi(result[2]);
+			ms.minNew = stoi(result[2]);
 			printf("minnew\n");
-			Species::monsterSpecies[species].maxNew = stoi(result[3]);
+			ms.maxNew = stoi(result[3]);
 			printf("maxnew\n");
-			Species::monsterSpecies[species].minDeath = stoi(result[4]);
+			ms.minDeath = stoi(result[4]);
 			printf("mindeath\n");
-			Species::monsterSpecies[species].maxDeath = stoi(result[5]);
+			ms.maxDeath = stoi(result[5]);
 			printf("maxdeath\n");
-			Species::monsterSpecies[species].toxicity = stoi(result[6]);
+			ms.toxicity = stoi(result[6]);
 			printf("toxicity\n");
-			Species::monsterSpecies[species].size = stoi(result[7]);
+			ms.size = stoi(result[7]);
 			printf("size\n");
-			Species::monsterSpecies[species].groupSize = stoi(result[8]);
+			ms.groupSize = stoi(result[8]);
 			printf("groupsize\n");
-			Species::monsterSpecies[species].land = stoi(result[9]);
+			ms.land = stoi(result[9]);
 			printf("land\n");
-			Species::monsterSpecies[species].name = result[10];
+			ms.name = result[10];
 			printf("name\n");
-			Species::monsterSpecies[species].population = stoi(result[11]);
+			ms.population = stoi(result[11]);
 			printf("pop\n");
-			Species::monsterSpecies[species].metabolism = stoi(result[12]);
+			ms.metabolism = stoi(result[12]);
 			printf("met\n");
-			Species::monsterSpecies[species].lifespan = stoi(result[13]);
+			ms.lifespan = stoi(result[13]);
 			printf("life\n");
-			Species::monsterSpecies[species].speed = stoi(result[14]);
+			ms.speed = stoi(result[14]);
 			printf("spd\n");
-			Species::monsterSpecies[species].strength = stoi(result[15]);
+			ms.strength = stoi(result[15]);
 			printf("str\n");
-			Species::monsterSpecies[species].resil = stoi(result[16]);
+			ms.resil = stoi(result[16]);
 			printf("resl\n");
-			Species::monsterSpecies[species].agression = stoi(result[17]);
+			ms.agression = stoi(result[17]);
 			printf("ag\n");
-			Species::monsterSpecies[species].enemy = stoi(result[18]);
+			ms.enemy = stoi(result[18]);
 			printf("en\n");
-			Species::monsterSpecies[species].image.height = 8;
-			Species::monsterSpecies[species].image.width = 8;
+			ms.image.height = 8;
+			ms.image.width = 8;
+			ms.image = MonsterImg::basic0;
+			ms.carnivore = false;
+			Species::monsterSpecies.push_back(ms);
 		}
 		if(result[0].find("GROUND") != string::npos)
 		{

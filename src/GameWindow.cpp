@@ -125,7 +125,7 @@ void GameWindow::setupLand()
 }
 void GameWindow::tick()
 {
-	cout << GetFPS() << endl;
+	cout << GetFPS() << " " << GameObject::objects.size() << endl;
 	if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
 	{
 		showingUpperText = false;
@@ -331,7 +331,7 @@ void GameWindow::tick()
 	{
 		camera->offset.y -= 16/*camera->zoom*/;
 	}
-	if(IsKeyPressed(KEY_R))
+	if(false/*IsKeyPressed(KEY_R)*/)
 	{
 		reset();
 	}
@@ -456,6 +456,10 @@ void GameWindow::reset()
 			GameObject::fog[x][y].enable();
 		}
 	}
+	Species::monsterSpecies.clear();
+	Species::plantSpecies.clear();
+	generatePlants();
+	generateMonsters(true);
 }
 bool GameWindow::clickUI(int x1, int y1, int x2, int y2)
 {
@@ -521,63 +525,66 @@ void GameWindow::doGeneration()
 	}
 	if(GameObject::generation == 0)
 	{
-		for(int c = 0; c < 10; c++)
+		for(int a = 0; a < 3; a++)
 		{
-			bool created = false;
-			int rx;
-			int ry;
-			while(!created)
+			for(int c = a == 0 ? 0 : 1; c < 10; c++)
 			{
-				int foundPlant = 0;
-				bool foundLand = false;
-				rx = (rand()%120)*8;
-				ry = (rand()%120)*8;
-				for(unsigned int i = 0; i < GameObject::objects.size(); i++)
+				bool created = false;
+				int rx;
+				int ry;
+				while(!created)
 				{
-					if(GameObject::objects[i]->getName() == "Plant")
+					int foundPlant = 0;
+					bool foundLand = false;
+					rx = (rand()%120)*8;
+					ry = (rand()%120)*8;
+					for(unsigned int i = 0; i < GameObject::objects.size(); i++)
 					{
-						if(std::abs(GameObject::objects[i]->getX() - rx) <= 16 && std::abs(GameObject::objects[i]->getY() - ry) <= 16)
+						if(GameObject::objects[i]->getName() == "Plant")
 						{
-							foundPlant++;
-						}
-					}
-					if(GameObject::objects[i]->getName() == "Ground")
-					{
-						if(std::abs(GameObject::objects[i]->getX() - rx) == 0 && std::abs(GameObject::objects[i]->getY() - ry) == 0)
-						{
-							Ground* g = static_cast<Ground*>(GameObject::objects[i]);
-							if(g->getBiome() != WATER && g->getBiome() != FRESHWATER)
+							if(std::abs(GameObject::objects[i]->getX() - rx) <= 16 && std::abs(GameObject::objects[i]->getY() - ry) <= 16)
 							{
-								foundLand = true;
+								foundPlant++;
+							}
+						}
+						if(GameObject::objects[i]->getName() == "Ground")
+						{
+							if(std::abs(GameObject::objects[i]->getX() - rx) == 0 && std::abs(GameObject::objects[i]->getY() - ry) == 0)
+							{
+								Ground* g = static_cast<Ground*>(GameObject::objects[i]);
+								if(g->getBiome() != WATER && g->getBiome() != FRESHWATER)
+								{
+									foundLand = true;
+								}
 							}
 						}
 					}
+					if (foundLand && Species::monsterSpecies[c].land && foundPlant>2)
+					{
+						created = true;
+					}
+					if(!foundLand && !Species::monsterSpecies[c].land)
+					{
+						created = true;
+					}
 				}
-				if (foundLand && Species::monsterSpecies[c].land && foundPlant>2)
+				int enemyNum = rand()%8+1;
+				if(!Species::monsterSpecies[c].enemy)
 				{
-					created = true;
+					Monster* m = new Monster(rx+48,ry,enemyNum,true);
+					Monster* m1 = new Monster(rx+48,ry+8,enemyNum,true);
+					Monster* m2 = new Monster(rx+8,ry+48,enemyNum,true);
+					Monster* m3 = new Monster(rx+8,ry+48,enemyNum,true);
 				}
-				if(!foundLand && !Species::monsterSpecies[c].land)
-				{
-					created = true;
-				}
+				Monster* m = new Monster(rx,ry,c,Species::monsterSpecies[c].enemy);
+				Monster* m1 = new Monster(rx,ry+8,c,Species::monsterSpecies[c].enemy);
+				Monster* m2 = new Monster(rx+8,ry+8,c,Species::monsterSpecies[c].enemy);
+				Monster* m3 = new Monster(rx+8,ry,c,Species::monsterSpecies[c].enemy);
+				GameObject::objects.push_back(m);
+				GameObject::objects.push_back(m1);
+				GameObject::objects.push_back(m2);
+				GameObject::objects.push_back(m3);
 			}
-			int enemyNum = rand()%8+1;
-			if(!Species::monsterSpecies[c].enemy)
-			{
-				Monster* m = new Monster(rx+48,ry,enemyNum,true);
-				Monster* m1 = new Monster(rx+48,ry+8,enemyNum,true);
-				Monster* m2 = new Monster(rx+8,ry+48,enemyNum,true);
-				Monster* m3 = new Monster(rx+8,ry+48,enemyNum,true);
-			}
-			Monster* m = new Monster(rx,ry,c,Species::monsterSpecies[c].enemy);
-			Monster* m1 = new Monster(rx,ry+8,c,Species::monsterSpecies[c].enemy);
-			Monster* m2 = new Monster(rx+8,ry+8,c,Species::monsterSpecies[c].enemy);
-			Monster* m3 = new Monster(rx+8,ry,c,Species::monsterSpecies[c].enemy);
-			GameObject::objects.push_back(m);
-			GameObject::objects.push_back(m1);
-			GameObject::objects.push_back(m2);
-			GameObject::objects.push_back(m3);
 		}
 	}
 	GameObject::generation++;
@@ -586,7 +593,7 @@ void GameWindow::doGeneration()
 void GameWindow::doMove()
 {
 	printf("Hi!!!!\n");
-	for(uint i = 0; i<GameObject::objects.size();i++)
+	for(uint i = 3600; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
 		if(temp != nullptr && temp->getName() == "Monster")
@@ -722,7 +729,7 @@ void GameWindow::generateMonsters(bool enemy)
 		sp.maxNew = 4;
 		sp.size = 1;
 		sp.toxicity = 0;
-		sp.speed = 3;
+		sp.speed = 1;
 		sp.strength = 1;
 		sp.population = 0;
 		sp.groupSize = 10;

@@ -105,4 +105,26 @@ Font GameObject::font;
 	{
 		return clicked;
 	}
+	bool GameObject::getClicking()
+	{
+
+		bool clicking = false;
+		if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+		{
+			int mx = GetMouseX() / GameWindow::getCamera()->zoom - GameWindow::getCamera()->offset.x / GameWindow::getCamera()->zoom;
+			int my = GetMouseY() / GameWindow::getCamera()->zoom - GameWindow::getCamera()->offset.y / GameWindow::getCamera()->zoom ;
+			mouseX = mx;
+			mouseY = my;
+			clicking = (mx >= x && my >= y && mx <= x+width && my <= y+height);
+			if(clicking)
+			{
+				clickedHere = true;
+			}
+			else
+			{
+				clickedHere = false;
+			}
+		}
+		return clicking;
+	}
 
