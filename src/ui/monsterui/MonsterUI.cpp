@@ -15,7 +15,8 @@ MonsterUI::MonsterUI() : super(){
 	running = false;
 	editing = false;
 	//fontBig = LoadFontEx("src/SGK050.ttf",480,0,0);
-
+	lookingAtPlayer = true;
+	index = 0;
 }
 
 MonsterUI::~MonsterUI() {
@@ -173,14 +174,24 @@ void MonsterUI::tick()
 	{
 		running = false;
 	}
+	if(running && !editing)
+	{
+		if(IsKeyPressed(KEY_P))
+		{
+			cout << "MADE IT" << endl;
+			lookingAtPlayer = !lookingAtPlayer;
+		}
+	}
 }
 void MonsterUI::render()
 {
 	if(running)
 	{
 		DrawRectangle(0,0,480,480,WHITE);
-		if(!editing)
+		cout << Species::plMonstersDiscovered.size();
+		if(!editing && (lookingAtPlayer ? Species::plMonstersDiscovered.size() : Species::monstersDiscovered.size()) > 0)
 		{
+			curViewing = lookingAtPlayer ? Species::plMonstersDiscovered[index] : Species::monstersDiscovered[index];
 			DrawTexturePro(Species::monsterSpecies[curViewing].image,srcRect,destRect,origin,0,WHITE);
 			drawStats();
 			DrawTexture(leftButton,leftButtonX,leftButtonY,WHITE);
@@ -605,7 +616,7 @@ bool MonsterUI::getRunning()
 }
 void MonsterUI::drawStats()
 {
-	std::string num = "Monster #" + std::to_string(curViewing);
+	std::string num = "Monster #" + std::to_string(index);
 	std::string pop = "Population: " + std::to_string(Species::monsterSpecies[curViewing].population);
 	DrawTextEx(font,num.c_str(),{236,64},48.0f,0.0f,BLACK);
 	DrawTextEx(font,Species::monsterSpecies[curViewing].name.c_str(),{256,108},24.0f,0.0f,BLACK);
@@ -679,17 +690,21 @@ void MonsterUI::drawStats()
 }
 void MonsterUI::clickLeft()
 {
-	if(curViewing>0)
+	if(index>0)
 	{
-		curViewing--;
+		index--;
 	}
 }
 void MonsterUI::clickRight()
 {
-	curViewing++;
-	if(curViewing>=Species::monsterSpecies.size())
+	index++;
+	if(index>=Species::plMonstersDiscovered.size() && lookingAtPlayer)
 	{
-		curViewing = Species::monsterSpecies.size()-1;
+		index = Species::plMonstersDiscovered.size()-1;
+	}
+	if(index>=Species::monstersDiscovered.size() && !lookingAtPlayer)
+	{
+		index = Species::monstersDiscovered.size()-1;
 	}
 }
 

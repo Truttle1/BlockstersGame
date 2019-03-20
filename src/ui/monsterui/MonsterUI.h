@@ -83,6 +83,9 @@ class MonsterUI : public UI
 
 		int editButtonX = 300;
 		int editButtonY = 432;
+
+		bool lookingAtPlayer;
+		int index;
 };
 
 #endif /* UI_MONSTERUI_PLANTUI_H_ */

@@ -6,6 +6,7 @@
  */
 
 #include "Monster.h"
+#include <algorithm>
 Monster::Monster(int ix, int iy, int sp, bool e) : GameObject(ix,iy,8,8)
 {
 	alive = true;
@@ -169,6 +170,27 @@ void Monster::render()
 		DrawRectangle(x,y,8,8,GREEN);
 	}
 	DrawTexture(Species::monsterSpecies[this->species].image,x,y,WHITE);
+
+	int normX = x/16;
+	int normY = y/16;
+	if(!GameObject::fog[normX][normY].isVisible())
+	{
+		if(enemy)
+		{
+			if(!(std::find(Species::monstersDiscovered.begin(),Species::monstersDiscovered.end(),species) != Species::monstersDiscovered.end()))
+			{
+				Species::monstersDiscovered.push_back(species);
+			}
+		}
+		else
+		{
+
+			if(!(std::find(Species::plMonstersDiscovered.begin(),Species::plMonstersDiscovered.end(),species) != Species::plMonstersDiscovered.end()))
+			{
+				Species::plMonstersDiscovered.push_back(species);
+			}
+		}
+	}
 
 }
 void Monster::nextGeneration()
