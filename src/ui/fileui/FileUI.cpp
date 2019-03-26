@@ -89,6 +89,7 @@ void FileUI::loadUI()
 {
 	if(IsKeyPressed(KEY_ENTER) && !saving && running)
 	{
+		MusicHandler::playSong(MusicHandler::boyDog);
 		std::string select = std::to_string(selection);
 		try
 		{
@@ -190,7 +191,7 @@ void FileUI::load(std::string filename)
 			ps.groupSize = stoi(result[9]);
 			ps.land = stoi(result[10]);
 			ps.name = result[11];
-			ps.population = stoi(result[12]);
+			//ps.population = stoi(result[12]);
 			ps.lifespan = stoi(result[13]);
 			cout << "IMAGE" << endl;
 			ps.image.height = 8;
@@ -222,7 +223,7 @@ void FileUI::load(std::string filename)
 			printf("land\n");
 			ms.name = result[10];
 			printf("name\n");
-			ms.population = stoi(result[11]);
+			//ms.population = stoi(result[11]);
 			printf("pop\n");
 			ms.metabolism = stoi(result[12]);
 			printf("met\n");
@@ -348,6 +349,18 @@ void FileUI::load(std::string filename)
 				GameObject::fog[stoi(result[1])][stoi(result[2])].disable();
 			}
 		}
+		if(result[0].find("PLNT_DISCOVERED") != string::npos)
+		{
+				Species::plantsDiscovered.push_back(stoi(result[1]));
+		}
+		if(result[0].find("AIMNSTERS_DISCOVERED") != string::npos)
+		{
+				Species::monstersDiscovered.push_back(stoi(result[1]));
+		}
+		if(result[0].find("PLMNSTERS_DISCOVERED") != string::npos)
+		{
+				Species::plMonstersDiscovered.push_back(stoi(result[1]));
+		}
 	}
 	open = false;
 	running = false;
@@ -361,18 +374,6 @@ void FileUI::save(std::string filename)
 		file << "GEN,";
 		file << to_string(GameObject::generation);
 		file << "\n";
-		for(unsigned int i = 0; i < Species::plantsDiscovered.size(); i++)
-		{
-			file << "PLNT_DISCOVERED," << Species::plantsDiscovered[i] << "\n";
-		}
-		for(unsigned int i = 0; i < Species::monstersDiscovered.size(); i++)
-		{
-			file << "AIMONSTERS_DISCOVERED," << Species::monstersDiscovered[i] << "\n";
-		}
-		for(unsigned int i = 0; i < Species::plMonstersDiscovered.size(); i++)
-		{
-			file << "PLMONSTERS_DISCOVERED," << Species::plMonstersDiscovered[i] << "\n";
-		}
 		for(unsigned int i = 0; i < Species::plantSpecies.size(); i++)
 		{
 			file << "PSPECIES,";
@@ -613,6 +614,18 @@ void FileUI::save(std::string filename)
 				file << to_string(g->isEnemy()).c_str();
 				file << "\n";
 			}
+		}
+		for(unsigned int i = 0; i < Species::plantsDiscovered.size(); i++)
+		{
+			file << "PLNT_DISCOVERED," << Species::plantsDiscovered[i] << "\n";
+		}
+		for(unsigned int i = 0; i < Species::monstersDiscovered.size(); i++)
+		{
+			file << "AIMNSTERS_DISCOVERED," << Species::monstersDiscovered[i] << "\n";
+		}
+		for(unsigned int i = 0; i < Species::plMonstersDiscovered.size(); i++)
+		{
+			file << "PLMNSTERS_DISCOVERED," << Species::plMonstersDiscovered[i] << "\n";
 		}
 		open = false;
 		running = false;

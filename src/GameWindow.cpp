@@ -93,7 +93,7 @@ void GameWindow::init(Camera2D* cam)
 	loadUIButton.addUI(&loadUI);
 
 	Meat::setMeatTexture(LoadTexture("src/img/meat.png"));
-
+	MusicHandler::loadMusic();
 
 }
 void GameWindow::removePoints(int removePoints)
@@ -125,6 +125,10 @@ void GameWindow::setupLand()
 }
 void GameWindow::tick()
 {
+	if(UI::isOpen())
+	{
+		showingUpperText = false;
+	}
 	cout << GetFPS() << " " << GameObject::objects.size() << endl;
 	if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
 	{
@@ -140,6 +144,14 @@ void GameWindow::tick()
 		{
 			doGeneration();
 		}
+	}
+	if(GameObject::generation == -1)
+	{
+		MusicHandler::playFirstSong(MusicHandler::pirateKite);
+	}
+	if(GameObject::generation >= 0)
+	{
+		MusicHandler::handleMusic();
 	}
 	centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
 	centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);

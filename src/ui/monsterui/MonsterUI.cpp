@@ -37,7 +37,7 @@ void MonsterUI::init()
 	yellow.init(280,72,YELLOW);
 	colors.push_back(yellow);
 	ColorBox green = ColorBox();
-	green.init(320,72,GREEN);
+	green.init(320,72,{0,192,0,255});
 	colors.push_back(green);
 	ColorBox cyan = ColorBox();
 	cyan.init(360,72,{0,255,255,255});
@@ -59,7 +59,7 @@ void MonsterUI::init()
 	yellow1.init(280,112,{128,128,0,255});
 	colors.push_back(yellow1);
 	ColorBox green1 = ColorBox();
-	green1.init(320,112,{0,192,0,255});
+	green1.init(320,112,{0,128,0,255});
 	colors.push_back(green1);
 	ColorBox cyan1 = ColorBox();
 	cyan1.init(360,112,{0,128,128,255});
@@ -81,7 +81,7 @@ void MonsterUI::init()
 	yellow2.init(280,32,{255,255,192,255});
 	colors.push_back(yellow2);
 	ColorBox green2 = ColorBox();
-	green2.init(320,32,{128,255,128,255});
+	green2.init(320,32,{0,255,0,255});
 	colors.push_back(green2);
 	ColorBox cyan2 = ColorBox();
 	cyan2.init(360,32,{128,255,255,255});
@@ -163,6 +163,22 @@ void MonsterUI::tick()
 		if(getClicking(editButtonX,editButtonY,64,32))
 		{
 			editing = true;
+			Color* pixels = (Color*)(GetImageData(GetTextureData(Species::monsterSpecies[curViewing].image)));
+			int ct = 0;
+			for(int x=0; x<8; x++)
+			{
+				for(int y=0; y<8; y++)
+				{
+					grid[y][x] = pixels[ct];
+					ct++;
+				}
+			}
+		}
+		if(getClicking(switchButtonX,switchButtonY,128,32))
+		{
+			cout << "MADE IT" << endl;
+			lookingAtPlayer = !lookingAtPlayer;
+			index = 0;
 		}
 	}
 	else
@@ -172,6 +188,7 @@ void MonsterUI::tick()
 
 	if(!open)
 	{
+		lookingAtPlayer = true;
 		running = false;
 	}
 	if(running && !editing)
@@ -203,6 +220,21 @@ void MonsterUI::render()
 				DrawTextEx(font,"Edit",{editButtonX+8.0f,editButtonY+4.0f},24.0f,0.0f,WHITE);
 				DrawTextEx(font,"Edit",{editButtonX+9.0f,editButtonY+4.0f},24.0f,0.0f,WHITE);
 			}
+			Color col;
+			const char* str;
+			if(lookingAtPlayer)
+			{
+				col = BLUE;
+				str = "Player Monsters";
+			}
+			else
+			{
+				col = RED;
+				str = "Rival Monsters";
+			}
+			DrawRectangle(switchButtonX,switchButtonY,128,32,col);
+			DrawTextEx(font,str,{switchButtonX+4.0f,switchButtonY+4.0f},18.0f,0.0f,WHITE);
+
 
 
 		}
@@ -587,6 +619,7 @@ void MonsterUI::tickEditScreen()
 	if(getClicking(saveButtonX,saveButtonY,64,32))
 	{
 		saveMonster();
+		index = Species::plMonstersDiscovered.size() - 1;
 	}
 	if(getClicking(saveButtonX-72,saveButtonY,64,32))
 	{

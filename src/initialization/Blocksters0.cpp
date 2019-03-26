@@ -6,6 +6,7 @@ GameWindow * game = new GameWindow();
 Camera2D* camera = new Camera2D();
 int main()
 {
+	InitAudioDevice();
 	game->init(camera);
 	while(!WindowShouldClose())
 	{

@@ -50,7 +50,7 @@ int Monster::getPopulation()
 void Monster::tick()
 {
 	getClicking();
-	if(clickedHere)
+	if(clickedHere && !UI::isOpen())
 	{
 		string rivalStatus = " ";
 		if(enemy)
@@ -378,9 +378,9 @@ void Monster::nextMove()
 	if(monster.carnivore)
 	{
 		cout << "CARNIVORE" << endl;
-		for(int i=3600; i<GameObject::objects.size();i++)
+		for(unsigned int i=3600; i<GameObject::objects.size();i++)
 		{
-			if(GameObject::objects[i]->getName() == "Meat")
+			if(GameObject::objects[i] && GameObject::objects[i]->getName() == "Meat")
 			{
 				Meat* m = static_cast<Meat*>(GameObject::objects[i]);
 				if(monster.carnivore && CheckCollisionRecs(m->getBounds(),this->getBounds()))
@@ -440,9 +440,9 @@ void Monster::selectRandomTarget()
 void Monster::eatPlant(Plant* p)
 {
 	PlantSpecies plant = Species::plantSpecies[p->getSpecies()];
-	if(plant.size <= monster.strength+2 && plant.toxicity <= monster.resil)
+	if(plant.size <= monster.size+1 && plant.toxicity <= monster.resil)
 	{
-		if(plant.groupSize <= monster.groupSize * monster.strength)
+		if(plant.groupSize * plant.size <= monster.groupSize * monster.strength)
 		{
 			hp += p->getEaten(monster.metabolism);
 			if(hp>monster.metabolism)
@@ -519,10 +519,14 @@ void Monster::evolve()
 		lifespan++;
 		toxicity--;
 	}
-	else if(size < 0 && rand()%100<40)
+	else if(size > 0 && rand()%100<40)
 	{
 		size--;
 		toxicity+=2;
+	}
+	else if(rand()%100<40)
+	{
+		size++;
 	}
 
 	if(rand()%100<40)

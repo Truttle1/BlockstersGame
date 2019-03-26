@@ -13,6 +13,7 @@
 #include "../../img/MonsterImg.h"
 #include "../../GameWindow.h"
 #include "../EyeCandy.h"
+#include "../../ui/UI.h"
 class Monster:public GameObject {
 	public:
 		Monster(int ix, int iy, int sp, bool e);

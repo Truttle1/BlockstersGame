@@ -8,7 +8,7 @@
 #ifndef UI_UI_H_
 #define UI_UI_H_
 #include "../libraries/raylib.h"
-
+#include "../MusicHandler.h"
 class UI {
 	public:
 		UI();

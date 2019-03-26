@@ -84,6 +84,9 @@ class MonsterUI : public UI
 		int editButtonX = 300;
 		int editButtonY = 432;
 
+		float switchButtonX = 128;
+		float switchButtonY = 432;
+
 		bool lookingAtPlayer;
 		int index;
 };

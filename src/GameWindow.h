@@ -17,6 +17,7 @@
 #include "img/MonsterImg.h"
 #include "ui/plantui/PlantUI.h"
 #include "ui/monsterui/MonsterUI.h"
+#include "MusicHandler.h"
 #include <vector>
 #include <iostream>
 #include <cmath>
