@@ -170,7 +170,7 @@ void Plant::nextGeneration()
 		if(rand()%10000<5 && !GameObject::evolutionOccuredYet && alive)
 		{
 			evolve();
-			GameObject::evolutionOccuredYet = true;
+			//GameObject::evolutionOccuredYet = true;
 		}
 	}
 	if(x<0 || x>=960)
