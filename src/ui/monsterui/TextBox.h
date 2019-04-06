@@ -17,6 +17,7 @@ class TextBox {
 		void render();
 		std::string getText();
 		virtual ~TextBox();
+		void setText(std::string input);
 	private:
 		int x;
 		int y;

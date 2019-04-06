@@ -28,6 +28,11 @@ TextBox::~TextBox()
 {
 }
 
+void TextBox::setText(std::string input)
+{
+	text = input;
+}
+
 std::string TextBox::getText()
 {
 	return text;

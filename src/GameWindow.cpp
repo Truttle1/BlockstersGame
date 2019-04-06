@@ -12,7 +12,11 @@ FileUI loadUI;
 Camera2D* GameWindow::camera;
 bool GameWindow::showingUpperText;
 std::string GameWindow::upperText;
-int GameWindow::points = 4;
+int GameWindow::points = -4;
+int GameWindow::pointIncrease = 1;
+GameWindow::GameMode GameWindow::gameMode = TITLE_SCREEN;
+std::string GameWindow::fileName = "File Name";
+
 GameWindow::GameWindow() {
 	moving = false;
 	internalClock = 0;
@@ -30,7 +34,7 @@ void GameWindow::init(Camera2D* cam)
 	camera->rotation = 0.0f;
 
 
-	SetTargetFPS(30);
+
 	InitWindow(GameWindow::WINDOW_WIDTH,GameWindow::WINDOW_HEIGHT,"Blocksters - A Truttle1 Game");
 
 	PlantImg::initTextures();
@@ -56,6 +60,7 @@ void GameWindow::init(Camera2D* cam)
 	monsterButton = LoadTexture("src/img/ui/monsterButton.png");
 	saveButton = LoadTexture("src/img/ui/saveButton.png");
 	loadButton = LoadTexture("src/img/ui/loadButton.png");
+	titleScreen = LoadTexture("src/img/TitleScreen.png");
 
 	EyeCandy::setBoomR(LoadTexture("src/img/boom_r.png"));
 	EyeCandy::setBoomO(LoadTexture("src/img/boom_o.png"));
@@ -94,6 +99,7 @@ void GameWindow::init(Camera2D* cam)
 
 	Meat::setMeatTexture(LoadTexture("src/img/meat.png"));
 	MusicHandler::loadMusic();
+	MusicHandler::playFirstSong(MusicHandler::dotWorld);
 
 }
 void GameWindow::removePoints(int removePoints)
@@ -123,13 +129,65 @@ void GameWindow::setupLand()
 	}
 
 }
+
 void GameWindow::tick()
+{
+	if(gameMode == TITLE_SCREEN)
+	{
+		titleScreenTick();
+	}
+	else if(gameMode == GAME_SCREEN)
+	{
+		gameTick();
+	}
+}
+
+void GameWindow::render()
+{
+	if(gameMode == TITLE_SCREEN)
+	{
+		titleScreenRender();
+	}
+	else if(gameMode == GAME_SCREEN)
+	{
+		gameRender();
+	}
+}
+
+void GameWindow::drawGUI()
+{
+	if(gameMode == TITLE_SCREEN)
+	{
+		titleScreenDrawGUI();
+	}
+	else if(gameMode == GAME_SCREEN)
+	{
+		gameDrawGUI();
+	}
+}
+
+void GameWindow::titleScreenTick()
+{
+	loadUI.tick();
+	if(getClicking(playX,playY,128,64))
+	{
+		gameMode = GAME_SCREEN;
+		loadUI.lighten();
+	}
+	if(getClicking(loadX,loadY,128,64))
+	{
+		loadUI.toggle();
+	}
+}
+
+void GameWindow::gameTick()
 {
 	if(UI::isOpen())
 	{
 		showingUpperText = false;
 	}
-	cout << GetFPS() << " " << GameObject::objects.size() << endl;
+	//cout << GetFPS() << " " << GameObject::objects.size() << endl;
+	//cout << camera->offset.x << " " << camera->offset.y << endl;
 	if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
 	{
 		showingUpperText = false;
@@ -142,12 +200,20 @@ void GameWindow::tick()
 		}
 		else
 		{
-			doGeneration();
+			if(spacer <= 0)
+			{
+				doGeneration();
+				spacer = spaceTime;
+			}
+			else
+			{
+				spacer--;
+			}
 		}
 	}
 	if(GameObject::generation == -1)
 	{
-		MusicHandler::playFirstSong(MusicHandler::pirateKite);
+		MusicHandler::playSong(MusicHandler::pirateKite);
 	}
 	if(GameObject::generation >= 0)
 	{
@@ -157,7 +223,6 @@ void GameWindow::tick()
 	centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
 	internalClock++;
 	GameObject::setGroundArray(groundArray);
-	GameObject::objects.shrink_to_fit();
 
 	for(uint i = GameObject::generation < 1 ? 0 : 0; i<GameObject::objects.size();i++)
 	{
@@ -170,36 +235,40 @@ void GameWindow::tick()
 			obj->nextMove();
 		}
 		GameObject* temp = GameObject::objects[i];
-		if(temp->getName() == "Plant")
+		if(temp)
 		{
-			Plant* p = static_cast<Plant*>(temp);
-			if(!(p->getAlive()))
+			if(temp->getName() == "Plant")
 			{
-				delete(GameObject::objects[i]);
-				GameObject::objects[i] = nullptr;
-				GameObject::objects.erase(GameObject::objects.begin()+i);
+				Plant* p = static_cast<Plant*>(temp);
+				if(!(p->getAlive()))
+				{
+					delete(GameObject::objects[i]);
+					GameObject::objects[i] = nullptr;
+					GameObject::objects.erase(GameObject::objects.begin()+i);
+				}
+			}
+			if(temp->getName() == "EyeCandy")
+			{
+				EyeCandy* p = static_cast<EyeCandy*>(temp);
+				if((p->getTimeRemaining()<=0))
+				{
+					delete(GameObject::objects[i]);
+					GameObject::objects[i] = nullptr;
+					GameObject::objects.erase(GameObject::objects.begin()+i);
+				}
+			}
+			if(temp->getName() == "Meat")
+			{
+				Meat* p = static_cast<Meat*>(temp);
+				if(!(p->isAlive()))
+				{
+					delete(GameObject::objects[i]);
+					GameObject::objects[i] = nullptr;
+					GameObject::objects.erase(GameObject::objects.begin()+i);
+				}
 			}
 		}
-		if(temp->getName() == "EyeCandy")
-		{
-			EyeCandy* p = static_cast<EyeCandy*>(temp);
-			if((p->getTimeRemaining()<=0))
-			{
-				delete(GameObject::objects[i]);
-				GameObject::objects[i] = nullptr;
-				GameObject::objects.erase(GameObject::objects.begin()+i);
-			}
-		}
-		if(temp->getName() == "Meat")
-		{
-			Meat* p = static_cast<Meat*>(temp);
-			if(!(p->isAlive()))
-			{
-				delete(GameObject::objects[i]);
-				GameObject::objects[i] = nullptr;
-				GameObject::objects.erase(GameObject::objects.begin()+i);
-			}
-		}
+
 	}
 	/*
 	for(uint i = 0; i<GameObject::objects.size();i++)
@@ -207,145 +276,148 @@ void GameWindow::tick()
 
 	}*/
 	moving = isMoving();
-	if(camera->zoom<8.0f)
+	if(GameObject::generation >= 1)
 	{
-		if(IsKeyPressed(KEY_LEFT_SHIFT) || IsKeyPressed(KEY_RIGHT_SHIFT))
+		if(camera->zoom<8.0f)
 		{
-			int dCenterX = centerX;
-			int dCenterY = centerY;
-			camera->zoom *= 2.0f;
-			centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
-			centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
+			if(IsKeyPressed(KEY_LEFT_SHIFT) || IsKeyPressed(KEY_RIGHT_SHIFT))
+			{
+				int dCenterX = centerX;
+				int dCenterY = centerY;
+				camera->zoom *= 2.0f;
+				centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
+				centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
 
-			while(centerX<dCenterX)
-			{
-				camera->offset.x--;
-				printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
-				centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
-				centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
-				if(centerX>=dCenterX)
+				while(centerX<dCenterX)
 				{
-					break;
+					camera->offset.x--;
+					printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
+					centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
+					centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
+					if(centerX>=dCenterX)
+					{
+						break;
+					}
 				}
-			}
-			while(centerX>dCenterX)
-			{
-				camera->offset.x++;
-				printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
-				centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
-				centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
-				if(centerX<=dCenterX)
+				while(centerX>dCenterX)
 				{
-					break;
+					camera->offset.x++;
+					printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
+					centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
+					centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
+					if(centerX<=dCenterX)
+					{
+						break;
+					}
 				}
-			}
-			while(centerY>dCenterY)
-			{
-				camera->offset.y++;
-				printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
-				centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
-				centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
-				if(centerY<=dCenterY)
+				while(centerY>dCenterY)
 				{
-					break;
+					camera->offset.y++;
+					printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
+					centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
+					centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
+					if(centerY<=dCenterY)
+					{
+						break;
+					}
 				}
-			}
-			while(centerY<dCenterY)
-			{
-				camera->offset.y--;
-				printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
-				centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
-				centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
-				if(centerY>=dCenterY)
+				while(centerY<dCenterY)
 				{
-					break;
+					camera->offset.y--;
+					printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
+					centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
+					centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
+					if(centerY>=dCenterY)
+					{
+						break;
+					}
 				}
 			}
 		}
-	}
-	if(camera->zoom>0.5f)
-	{
-		if(IsKeyPressed(KEY_LEFT_CONTROL) || IsKeyPressed(KEY_RIGHT_CONTROL))
+		if(camera->zoom>0.5f)
 		{
-			int dCenterX = centerX;
-			int dCenterY = centerY;
-			camera->zoom /= 2.0f;
-			centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
-			centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
+			if(IsKeyPressed(KEY_LEFT_CONTROL) || IsKeyPressed(KEY_RIGHT_CONTROL))
+			{
+				int dCenterX = centerX;
+				int dCenterY = centerY;
+				camera->zoom /= 2.0f;
+				centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
+				centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
 
-			while(centerX<dCenterX)
-			{
-				camera->offset.x--;
-				printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
-				centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
-				centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
-				if(centerX>=dCenterX)
+				while(centerX<dCenterX)
 				{
-					break;
+					camera->offset.x--;
+					printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
+					centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
+					centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
+					if(centerX>=dCenterX)
+					{
+						break;
+					}
 				}
-			}
-			while(centerX>dCenterX)
-			{
-				camera->offset.x++;
-				printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
-				centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
-				centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
-				if(centerX<=dCenterX)
+				while(centerX>dCenterX)
 				{
-					break;
+					camera->offset.x++;
+					printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
+					centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
+					centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
+					if(centerX<=dCenterX)
+					{
+						break;
+					}
 				}
-			}
-			while(centerY>dCenterY)
-			{
-				camera->offset.y++;
-				printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
-				centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
-				centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
-				if(centerY<=dCenterY)
+				while(centerY>dCenterY)
 				{
-					break;
+					camera->offset.y++;
+					printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
+					centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
+					centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
+					if(centerY<=dCenterY)
+					{
+						break;
+					}
 				}
-			}
-			while(centerY<dCenterY)
-			{
-				camera->offset.y--;
-				printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
-				centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
-				centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
-				if(centerY>=dCenterY)
+				while(centerY<dCenterY)
 				{
-					break;
+					camera->offset.y--;
+					printf("(%d/%d, %d/%d)\n",centerX,dCenterX,centerY,dCenterY);
+					centerX = (240/camera->zoom)-(camera->offset.x/camera->zoom);
+					centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
+					if(centerY>=dCenterY)
+					{
+						break;
+					}
 				}
 			}
 		}
-	}
-	if(camera->zoom>8.0f)
-	{
-		camera->zoom = 8.0f;
-	}
-	if(camera->zoom<0.5f)
-	{
-		camera->zoom = 0.5f;
-	}
-	if(IsKeyDown(KEY_LEFT))
-	{
-		camera->offset.x += 16/*camera->zoom*/;
-	}
-	if(IsKeyDown(KEY_RIGHT))
-	{
-		camera->offset.x -= 16/*camera->zoom*/;
-	}
-	if(IsKeyDown(KEY_UP))
-	{
-		camera->offset.y += 16/*camera->zoom*/;
-	}
-	if(IsKeyDown(KEY_DOWN))
-	{
-		camera->offset.y -= 16/*camera->zoom*/;
-	}
-	if(false/*IsKeyPressed(KEY_R)*/)
-	{
-		reset();
+		if(camera->zoom>8.0f)
+		{
+			camera->zoom = 8.0f;
+		}
+		if(camera->zoom<0.5f)
+		{
+			camera->zoom = 0.5f;
+		}
+		if(IsKeyDown(KEY_LEFT))
+		{
+			camera->offset.x += 16/*camera->zoom*/;
+		}
+		if(IsKeyDown(KEY_RIGHT))
+		{
+			camera->offset.x -= 16/*camera->zoom*/;
+		}
+		if(IsKeyDown(KEY_UP))
+		{
+			camera->offset.y += 16/*camera->zoom*/;
+		}
+		if(IsKeyDown(KEY_DOWN))
+		{
+			camera->offset.y -= 16/*camera->zoom*/;
+		}
+		if(false/*IsKeyPressed(KEY_R)*/)
+		{
+			reset();
+		}
 	}
 	int max;
 	if(camera->zoom>1)
@@ -374,20 +446,32 @@ void GameWindow::tick()
 	}
 	runUI();
 }
-void GameWindow::render()
+
+
+void GameWindow::titleScreenRender()
+{
+}
+
+void GameWindow::gameRender()
 {
 	DrawRectangle(-100,-100,1500,1500,PURPLE);
 	for(uint i=0; i<GameObject::objects.size();i++)
 	{
 		GameObject* obj = GameObject::objects[i];
-		obj->render();
+		if(obj)
+		{
+			obj->render();
+		}
 	}
 	for(uint i=0; i<GameObject::objects.size();i++)
 	{
 		GameObject* obj = GameObject::objects[i];
-		if(obj->getName() == "EyeCandy" || obj->getName() == "Meat")
+		if(obj)
 		{
-			obj->render();
+			if(obj->getName() == "EyeCandy" || obj->getName() == "Meat")
+			{
+					obj->render();
+			}
 		}
 	}
 	for(uint x=0; x<60; x++)
@@ -399,58 +483,86 @@ void GameWindow::render()
 
 	}
 }
-void GameWindow::drawGUI()
-{
-	plantUI.render();
-	monsterUI.render();
-	saveUI.render();
-	loadUI.render();
-	DrawRectangle(480,0,160,480,WHITE);
-	string genString = "Gen: " + to_string(GameObject::generation);
 
-	if(!UI::isOpen())
+void GameWindow::titleScreenDrawGUI()
+{
+	DrawTexture(titleScreen,0,0,WHITE);
+	DrawRectangle(playX,playY,128,64,WHITE);
+	DrawTextEx(GameObject::font,"PLAY",{playX+32,playY+16},36.0f,0.0f,BLACK); // @suppress("Invalid arguments")
+	DrawRectangle(loadX,loadY,128,64,WHITE);
+	DrawTextEx(GameObject::font,"LOAD",{loadX+32,loadY+16},36.0f,0.0f,BLACK); // @suppress("Invalid arguments")
+	loadUI.render();
+}
+
+void GameWindow::gameDrawGUI()
+{
+	if(GameObject::generation >= 0)
 	{
-		plantUIButton.render();
-		monsterUIButton.render();
-		saveUIButton.render();
-		loadUIButton.render();
-		if(genPhase == MOVE_PHASE)
+		plantUI.render();
+		monsterUI.render();
+		saveUI.render();
+		loadUI.render();
+		DrawRectangle(480,0,160,480,WHITE);
+		string genString = "Gen: " + to_string(GameObject::generation);
+
+		if(!UI::isOpen())
 		{
-			DrawTexture(moveButton,NEXT_GEN_X,NEXT_GEN_Y,WHITE);
+			plantUIButton.render();
+			monsterUIButton.render();
+			saveUIButton.render();
+			loadUIButton.render();
+			if(genPhase == MOVE_PHASE)
+			{
+				DrawTexture(moveButton,NEXT_GEN_X,NEXT_GEN_Y,WHITE);
+			}
+			else if(!moving)
+			{
+				DrawTexture(nextGenButton,NEXT_GEN_X,NEXT_GEN_Y,WHITE);
+			}
 		}
-		else if(!moving)
+		else
 		{
-			DrawTexture(nextGenButton,NEXT_GEN_X,NEXT_GEN_Y,WHITE);
+			DrawRectangle(BACK_X,BACK_Y,BACK_W,BACK_H,RED);
+			DrawTextEx(GameObject::font,"BACK TO MAP",{506,64},20,0.0f,WHITE);
+		}
+		Vector2 genPos;
+		genPos.x = 496;
+		genPos.y = 16;
+		DrawTextEx(GameObject::font,&genString[0],genPos,24,0.0f,BLACK);
+		genPos.x = 497;
+		genPos.y = 16;
+		DrawTextEx(GameObject::font,&genString[0],genPos,24,0.0f,BLACK);
+
+		string pointString = "Evolve Pts: " + to_string(GameWindow::points);
+		Vector2 ptPos;
+		ptPos.x = 488;
+		ptPos.y = 128;
+		DrawTextEx(GameObject::font,&pointString[0],ptPos,24,0.0f,BLACK);
+		ptPos.x = 489;
+		ptPos.y = 128;
+		DrawTextEx(GameObject::font,&pointString[0],ptPos,24,0.0f,BLACK);
+
+
+		if(showingUpperText)
+		{
+			DrawRectangle(0,0,480,96,WHITE);
+			DrawTextEx(GameObject::font,upperText.c_str(),{16,16},24,0.0f,BLACK);
 		}
 	}
 	else
 	{
-		DrawRectangle(BACK_X,BACK_Y,BACK_W,BACK_H,RED);
-		DrawTextEx(GameObject::font,"BACK TO MAP",{506,64},20,0.0f,WHITE);
+		DrawRectangle(0,0,640,480,BLACK);
+		DrawTextEx(GameObject::font,"GENERATING MAP",{16,16},72,0.0f,WHITE);
+		DrawTextEx(GameObject::font,"As you could probably imagine, it takes a minute or so for Blocksters",{16,100},18,0.0f,WHITE);
+		DrawTextEx(GameObject::font,"Planets Construction Inc. to build a planet for you.",{16,112},18,0.0f,WHITE);
+		DrawTextEx(GameObject::font,"You might feel like complaining, but they are working as fast as they",{16,124},18,0.0f,WHITE);
+		DrawTextEx(GameObject::font,"can! Building planets is no small feat!",{16,136},18,0.0f,WHITE);
+
+		DrawRectangle(16,432,608,32,WHITE);
+		int slices = (GameObject::generation+15)*(608/15);
+		DrawRectangle(16,432,slices,32,GREEN);
 	}
-	Vector2 genPos;
-	genPos.x = 496;
-	genPos.y = 16;
-	DrawTextEx(GameObject::font,&genString[0],genPos,24,0.0f,BLACK);
-	genPos.x = 497;
-	genPos.y = 16;
-	DrawTextEx(GameObject::font,&genString[0],genPos,24,0.0f,BLACK);
 
-	string pointString = "Evolve Pts: " + to_string(GameWindow::points);
-	Vector2 ptPos;
-	ptPos.x = 488;
-	ptPos.y = 128;
-	DrawTextEx(GameObject::font,&pointString[0],ptPos,24,0.0f,BLACK);
-	ptPos.x = 489;
-	ptPos.y = 128;
-	DrawTextEx(GameObject::font,&pointString[0],ptPos,24,0.0f,BLACK);
-
-
-	if(showingUpperText)
-	{
-		DrawRectangle(0,0,480,96,WHITE);
-		DrawTextEx(GameObject::font,upperText.c_str(),{16,16},24,0.0f,BLACK);
-	}
 }
 void GameWindow::reset()
 {
@@ -486,27 +598,33 @@ bool GameWindow::clickUI(int x1, int y1, int x2, int y2)
 	}
 	return clicking;
 }
+void GameWindow::setPoints(int newPoints)
+{
+	points = newPoints;
+}
 void GameWindow::doGeneration()
 {
-	printf("%d",Species::plantSpecies[0].land);
+	if(GameObject::generation % 5 == 0)
+	{
+		points += pointIncrease+1;
+	}
 	GameObject::resetEvolution();
 	for(uint i = 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
-		if(temp->getName() == "Ground" || temp->getName() == "Plant" || temp->getName() == "Monster"|| temp->getName() == "Meat")
+		if(temp != nullptr)
 		{
-			if(temp != nullptr)
+			if(temp->getName().compare("Ground") == 0 || temp->getName().compare("Plant") == 0 || temp->getName().compare("Monster") == 0|| temp->getName().compare("Meat") == 0)
 			{
 				temp->nextGeneration();
 			}
 		}
-		if(temp->getName() == "Plant")
+		if(temp != nullptr && temp->getName() == "Plant")
 		{
 			Plant* p = static_cast<Plant*>(temp);
 			if(!(p->getAlive()))
 			{
 				delete(GameObject::objects[i]);
-				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
@@ -516,26 +634,11 @@ void GameWindow::doGeneration()
 			if(!(p->getAlive()))
 			{
 				delete(GameObject::objects[i]);
-				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
 	}
-	for(uint i = 0; i<GameObject::objects.size();i++)
-	{
-		GameObject* temp = GameObject::objects[i];
-		if(temp->getName() == "Plant")
-		{
-			Plant* p = static_cast<Plant*>(temp);
-			if(!(p->getAlive()))
-			{
-				delete(GameObject::objects[i]);
-				GameObject::objects[i] = nullptr;
-				GameObject::objects.erase(GameObject::objects.begin()+i);
-			}
-		}
-	}
-	if(GameObject::generation == 0)
+	if(GameObject::generation == -1)
 	{
 		for(int a = 0; a < 3; a++)
 		{
@@ -571,7 +674,7 @@ void GameWindow::doGeneration()
 							}
 						}
 					}
-					if (foundLand && Species::monsterSpecies[c].land && foundPlant>2)
+					if (foundLand && Species::monsterSpecies[c].land && foundPlant>4)
 					{
 						created = true;
 					}
@@ -587,11 +690,21 @@ void GameWindow::doGeneration()
 					Monster* m1 = new Monster(rx+48,ry+8,enemyNum,true);
 					Monster* m2 = new Monster(rx+8,ry+48,enemyNum,true);
 					Monster* m3 = new Monster(rx+8,ry+48,enemyNum,true);
+					GameObject::objects.push_back(m);
+					GameObject::objects.push_back(m1);
+					GameObject::objects.push_back(m2);
+					GameObject::objects.push_back(m3);
 				}
 				Monster* m = new Monster(rx,ry,c,Species::monsterSpecies[c].enemy);
 				Monster* m1 = new Monster(rx,ry+8,c,Species::monsterSpecies[c].enemy);
 				Monster* m2 = new Monster(rx+8,ry+8,c,Species::monsterSpecies[c].enemy);
 				Monster* m3 = new Monster(rx+8,ry,c,Species::monsterSpecies[c].enemy);
+				if(!Species::monsterSpecies[c].enemy)
+				{
+					camera->zoom = 4.0f;
+					camera->offset.x -= (m->getX()-64)*4;
+					camera->offset.y -= (m->getY()-64)*4;
+				}
 				GameObject::objects.push_back(m);
 				GameObject::objects.push_back(m1);
 				GameObject::objects.push_back(m2);
@@ -601,24 +714,24 @@ void GameWindow::doGeneration()
 	}
 	GameObject::generation++;
 	genPhase = MOVE_PHASE;
+	//GameObject::objects.shrink_to_fit();
 }
 void GameWindow::doMove()
 {
 	printf("Hi!!!!\n");
-	for(uint i = 3600; i<GameObject::objects.size();i++)
+	for(uint i = 3500; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
-		if(temp != nullptr && temp->getName() == "Monster")
+		if(temp && temp->getName() == "Monster")
 		{
 			temp->nextMove();
 		}
-		if(temp != nullptr && temp->getName() == "Monster")
+		if(temp && temp->getName() == "Monster")
 		{
 			Monster* p = static_cast<Monster*>(temp);
-			if(!(p->getAlive()))
+			if(p && !(p->getAlive()))
 			{
 				delete(GameObject::objects[i]);
-				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
@@ -748,7 +861,7 @@ void GameWindow::generateMonsters(bool enemy)
 		sp.metabolism = 1;
 		sp.resil = 1;
 		sp.carnivore = false;
-		sp.agression = 4;
+		sp.agression = 2;
 
 		if(rand()%10<7)
 		{
@@ -760,15 +873,15 @@ void GameWindow::generateMonsters(bool enemy)
 		}
 		if(rand()%5<=1)
 		{
-			sp.image = MonsterImg::basic0;
+			sp.image = MonsterImg::miniscule0;
 		}
 		else if(rand()%5<=1)
 		{
-			sp.image = MonsterImg::basic1;
+			sp.image = MonsterImg::miniscule1;
 		}
 		else
 		{
-			sp.image = MonsterImg::basic2;
+			sp.image = MonsterImg::miniscule2;
 		}
 		int r = rand()%(ObjectColors::monsterColors.size());
 		sp.bodyColor = ObjectColors::monsterColors[r];
@@ -816,15 +929,15 @@ void GameWindow::generateMonsters(bool enemy)
 			}
 			if(rand()%5<=1)
 			{
-				sp.image = MonsterImg::basic0;
+				sp.image = MonsterImg::miniscule0;
 			}
 			else if(rand()%5<=1)
 			{
-				sp.image = MonsterImg::basic1;
+				sp.image = MonsterImg::miniscule1;
 			}
 			else
 			{
-				sp.image = MonsterImg::basic2;
+				sp.image = MonsterImg::miniscule2;
 			}
 			int r = rand()%(ObjectColors::monsterColors.size());
 			sp.bodyColor = ObjectColors::monsterColors[r];
@@ -868,3 +981,31 @@ void GameWindow::showUpperText(std::string text)
 	upperText = text;
 }
 
+
+bool GameWindow::getClicking(int x, int y, int width, int height)
+{
+
+	bool clicking = false;
+	if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+	{
+		int mx = GetMouseX();
+		int my = GetMouseY();
+		clicking = (mx >= x && my >= y && mx <= x+width && my <= y+height);
+	}
+	return clicking;
+}
+
+void GameWindow::setGameScreen()
+{
+	gameMode = GAME_SCREEN;
+}
+
+void GameWindow::setFileName(std::string name)
+{
+	fileName = name;
+}
+
+std::string GameWindow::getFileName()
+{
+	return fileName;
+}

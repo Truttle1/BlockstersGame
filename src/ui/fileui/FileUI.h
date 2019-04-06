@@ -12,6 +12,7 @@
 #include "../../objects/GameObject.h"
 #include "../../objects/world/Ground.h"
 #include "../../objects/world/Monster.h"
+#include "../monsterui/TextBox.h"
 #include <fstream>
 #include <sstream>
 class FileUI : public UI
@@ -23,8 +24,9 @@ class FileUI : public UI
 		void render();
 		void close();
 		bool getRunning();
-		void  toggle();
+		void toggle();
 		void init(bool iSaving);
+		void lighten();
 	private:
 		bool running;
 		bool saving;
@@ -48,14 +50,18 @@ class FileUI : public UI
 		Texture mountain;
 		Texture snow;
 		Texture desert;
-
+		TextBox fileName;
 		Texture2D leftButton;
 		Texture2D rightButton;
 		int selection = 0;
 		void save(std::string filename);
-		void load(std::string filename);
+		bool load(std::string filename);
 		void saveUI();
 		void loadUI();
+		bool dark = true;
+
+		int backX = 420;
+		int backY = 320;
 
 };
 

@@ -49,10 +49,12 @@ typedef unsigned int uint;
 			static Vector2 getMousePos();
 			static void resetEvolution();
 			static Fog fog[60][60];
+			static int getRemovedFog();
 		private:
 			int stretchSize = 1;
 		protected:
 			static bool evolutionOccuredYet;
+			static bool evolutionOccuredYetMonst;
 			int x = 0;
 			int y = 0;
 			int width = 0;
@@ -66,6 +68,7 @@ typedef unsigned int uint;
 			int mouseX;
 			int mouseY;
 			bool clickedHere;
+
 			//@return the pointer of the object at location [i] in the vector
 			GameObject* getObject(uint i)
 			{

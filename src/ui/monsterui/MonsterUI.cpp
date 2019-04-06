@@ -132,6 +132,18 @@ void MonsterUI::init()
 	strengthButton.addOption("No Change",0);
 	strengthButton.addOption("+2 Strength | -1 Defense",1);
 	strengthButton.addOption("+2 Defense | -1 Strength",1);
+
+	carnivoreButton = RadioButton(64,286,font);
+	carnivoreButton.addOption("No Change",0);
+	carnivoreButton.addOption("Become Carnivore",1);
+	carnivoreButton.addOption("Become Herbivore",1);
+
+	hostilityButton = RadioButton(64,362,font);
+	hostilityButton.addOption("No Change",0);
+	hostilityButton.addOption("+1 Hostility",1);
+	hostilityButton.addOption("-1 Hostility",1);
+
+	currentCost = 1;
 }
 void MonsterUI::initEditor(int species)
 {
@@ -160,8 +172,16 @@ void MonsterUI::tick()
 		{
 			clickRight();
 		}
-		if(getClicking(editButtonX,editButtonY,64,32))
+		if(getClicking(editButtonX,editButtonY,82,32) && Species::monsterSpecies[curViewing].population > 0)
 		{
+			birthChanceButton.reset();
+			immuneSystemButton.reset();
+			sizeButton.reset();
+			sizeButton2.reset();
+			speedButton.reset();
+			strengthButton.reset();
+			carnivoreButton.reset();
+			hostilityButton.reset();
 			editing = true;
 			Color* pixels = (Color*)(GetImageData(GetTextureData(Species::monsterSpecies[curViewing].image)));
 			int ct = 0;
@@ -173,6 +193,7 @@ void MonsterUI::tick()
 					ct++;
 				}
 			}
+			textBox.setText(Species::generateName());
 		}
 		if(getClicking(switchButtonX,switchButtonY,128,32))
 		{
@@ -189,6 +210,7 @@ void MonsterUI::tick()
 	if(!open)
 	{
 		lookingAtPlayer = true;
+		index = 0;
 		running = false;
 	}
 	if(running && !editing)
@@ -205,7 +227,7 @@ void MonsterUI::render()
 	if(running)
 	{
 		DrawRectangle(0,0,480,480,WHITE);
-		cout << Species::plMonstersDiscovered.size();
+		//cout << Species::plMonstersDiscovered.size();
 		if(!editing && (lookingAtPlayer ? Species::plMonstersDiscovered.size() : Species::monstersDiscovered.size()) > 0)
 		{
 			curViewing = lookingAtPlayer ? Species::plMonstersDiscovered[index] : Species::monstersDiscovered[index];
@@ -214,11 +236,11 @@ void MonsterUI::render()
 			DrawTexture(leftButton,leftButtonX,leftButtonY,WHITE);
 			DrawTexture(rightButton,rightButtonX,rightButtonY,WHITE);
 
-			if(Species::monsterSpecies[curViewing].enemy == false)
+			if(Species::monsterSpecies[curViewing].enemy == false && Species::monsterSpecies[curViewing].population > 0)
 			{
-				DrawRectangle(editButtonX,editButtonY,64,32,BLACK);
-				DrawTextEx(font,"Edit",{editButtonX+8.0f,editButtonY+4.0f},24.0f,0.0f,WHITE);
-				DrawTextEx(font,"Edit",{editButtonX+9.0f,editButtonY+4.0f},24.0f,0.0f,WHITE);
+				DrawRectangle(editButtonX,editButtonY,82,32,BLACK);
+				DrawTextEx(font,"Evolve",{editButtonX+8.0f,editButtonY+4.0f},24.0f,0.0f,WHITE);
+				DrawTextEx(font,"Evolve",{editButtonX+9.0f,editButtonY+4.0f},24.0f,0.0f,WHITE);
 			}
 			Color col;
 			const char* str;
@@ -287,6 +309,28 @@ void MonsterUI::drawEditScreen()
 		std::string ls = "Lives for " + std::to_string(lifespanUpdate) + " gen.";
 		DrawTextEx(font,ls.c_str(),{284,250},24.0f,0.0f,BLACK);
 		std::string tx = "Toxicity: " + std::to_string(toxicityUpdate) + " HP.";
+
+		std::string tox = "";
+		if(toxicityUpdate==0)
+		{
+			tox += "Non-Toxic";
+		}
+		else if(toxicityUpdate<3)
+		{
+			tox += "Slightly Toxic";
+		}
+		else if(toxicityUpdate<5)
+		{
+			tox += "Toxic";
+		}
+		else if(toxicityUpdate<7)
+		{
+			tox += "Very Toxic";
+		}
+		else
+		{
+			tox += "Insanely Toxic";
+		}
 		std::string sz = "Size: " + std::to_string(sizeUpdate);
 		std::string sizeDesc;
 
@@ -311,7 +355,10 @@ void MonsterUI::drawEditScreen()
 			sizeDesc += "Gargantuan";
 		}
 
+
+
 		DrawTextEx(font,tx.c_str(),{284,280},24.0f,0.0f,BLACK);
+		DrawTextEx(font,tox.c_str(),{284,300},24.0f,0.0f,BLACK);
 		DrawTextEx(font,sz.c_str(),{284,320},24.0f,0.0f,BLACK);
 		DrawTextEx(font,sizeDesc.c_str(),{284,340},24.0f,0.0f,BLACK);
 	}
@@ -330,6 +377,46 @@ void MonsterUI::drawEditScreen()
 		DrawTextEx(font,de.c_str(),{284,320},24.0f,0.0f,BLACK);
 		DrawTextEx(font,me.c_str(),{284,360},24.0f,0.0f,BLACK);
 	}
+	else if(page == 3)
+	{
+		carnivoreButton.render();
+		hostilityButton.render();
+		DrawTextEx(font,"Diet:",{48,256},24.0f,0.0f,BLACK);
+		DrawTextEx(font,"Hostility:",{48,332},24.0f,0.0f,BLACK);
+		std::string ls;
+		if(carnivoreUpdate)
+		{
+			ls = "Carnivore";
+		}
+		else
+		{
+			ls = "Herbivore";
+		}
+		DrawTextEx(font,ls.c_str(),{284,250},24.0f,0.0f,BLACK);
+		std::string sz = "Hostility: " + std::to_string(hostilityUpdate);
+		std::string sizeDesc;
+
+		if(hostilityUpdate<3)
+		{
+			sizeDesc += "Peaceful";
+		}
+		else if(hostilityUpdate<5)
+		{
+			sizeDesc += "Normal";
+		}
+		else if(hostilityUpdate<7)
+		{
+			sizeDesc += "Aggressive";
+		}
+		else if(hostilityUpdate<11)
+		{
+			sizeDesc += "Hostile";
+		}
+		DrawTextEx(font,sz.c_str(),{284,320},24.0f,0.0f,BLACK);
+		DrawTextEx(font,sizeDesc.c_str(),{284,340},24.0f,0.0f,BLACK);
+	}
+	std::string cost = "COST: " + to_string(currentCost) + " Evolve Pts.";
+	DrawTextEx(font,cost.c_str(),{284,400},24.0f,0.0f,BLACK);
 	DrawTextEx(font,"Traits:",{32,226},36.0f,0.0f,BLACK);
 	DrawTextEx(font,"Traits:",{32,227},36.0f,0.0f,BLACK);
 	DrawRectangle(276,248,4,190,BLUE);
@@ -362,13 +449,13 @@ void MonsterUI::saveMonster()
 	newSp.maxNew = maxNewUpdate;
 	newSp.minDeath = minDeathUpdate;
 	newSp.maxDeath = maxDeathUpdate;
+	newSp.agression = hostilityUpdate;
+	newSp.carnivore = carnivoreUpdate;
 
 	newSp.resil = resilUpdate;
 	newSp.strength = strengthUpdate;
 	newSp.speed = speedUpdate;
 	newSp.metabolism = metaUpdate;
-	newSp.agression = agression;
-	newSp.carnivore = carnivore;
 	newSp.image = monster.image;
 
 
@@ -396,6 +483,7 @@ void MonsterUI::saveMonster()
 	UpdateTexture(tex,pixels);
 	newSp.image = tex;
 	Species::monsterSpecies.push_back(newSp);
+	Species::plMonstersDiscovered.push_back(Species::monsterSpecies.size()-1);
 
 	for(unsigned int i = 3600; i < GameObject::objects.size(); i++)
 	{
@@ -423,10 +511,12 @@ void MonsterUI::saveMonster()
 	}
 	editing = false;
 	curViewing = Species::monsterSpecies.size()-1;
+	index = Species::monstersDiscovered.size()-1;
 }
 
 void MonsterUI::calculateUpdates()
 {
+	currentCost = 1;
 	lifespanUpdate = Species::monsterSpecies[curViewing].lifespan;
 	minNewUpdate = Species::monsterSpecies[curViewing].minNew;
 	maxNewUpdate = Species::monsterSpecies[curViewing].maxNew;
@@ -438,18 +528,24 @@ void MonsterUI::calculateUpdates()
 	resilUpdate = Species::monsterSpecies[curViewing].resil;
 	speedUpdate = Species::monsterSpecies[curViewing].speed;
 	metaUpdate = Species::monsterSpecies[curViewing].metabolism;
+	hostilityUpdate = Species::monsterSpecies[curViewing].agression;
+	carnivoreUpdate = Species::monsterSpecies[curViewing].carnivore;
 
 	if(birthChanceButton.getSelected() == 1)
 	{
 		lifespanUpdate -= 2;
 		minNewUpdate -= 1;
 		maxNewUpdate += 1;
+
+		currentCost++;
 	}
 	else if(birthChanceButton.getSelected() == 2)
 	{
 		lifespanUpdate += 2;
 		minNewUpdate += 1;
 		maxNewUpdate -= 1;
+
+		currentCost++;
 	}
 
 	if(immuneSystemButton.getSelected() == 1)
@@ -457,57 +553,104 @@ void MonsterUI::calculateUpdates()
 		lifespanUpdate -= 2;
 		minDeathUpdate -= 1;
 		maxDeathUpdate += 1;
+
+		currentCost++;
 	}
 	else if(immuneSystemButton.getSelected() == 2)
 	{
 		lifespanUpdate += 2;
 		minDeathUpdate += 1;
 		maxDeathUpdate -= 1;
+
+		currentCost++;
 	}
 
 	if(sizeButton.getSelected() == 1)
 	{
 		sizeUpdate += 2;
 		toxicityUpdate--;
+
+		currentCost++;
 	}
 	else if(sizeButton.getSelected() == 2)
 	{
 		sizeUpdate--;
 		toxicityUpdate += 2;
+
+		currentCost++;
 	}
 
 	if(sizeButton2.getSelected() == 1)
 	{
 		sizeUpdate += 2;
 		lifespanUpdate--;
+
+		currentCost++;
 	}
 	else if(sizeButton2.getSelected() == 2)
 	{
 		sizeUpdate--;
 		lifespanUpdate += 2;
+
+		currentCost++;
 	}
 
 	if(speedButton.getSelected() == 1)
 	{
 		speedUpdate += 2;
 		metaUpdate++;
+
+		currentCost++;
 	}
 	else if(speedButton.getSelected() == 2)
 	{
 		speedUpdate--;
 		metaUpdate -= 2;
+
+		currentCost++;
 	}
 
 	if(strengthButton.getSelected() == 1)
 	{
 		strengthUpdate += 2;
 		resilUpdate--;
+
+		currentCost++;
 	}
 	else if(strengthButton.getSelected() == 2)
 	{
 		resilUpdate += 2;
 		strengthUpdate--;
+
+		currentCost++;
 	}
+
+	if(carnivoreButton.getSelected() == 1)
+	{
+		carnivoreUpdate = true;
+
+		currentCost++;
+	}
+	else if(carnivoreButton.getSelected() == 2)
+	{
+		carnivoreUpdate = false;
+
+		currentCost++;
+	}
+
+	if(hostilityButton.getSelected() == 1)
+	{
+		hostilityUpdate++;
+
+		currentCost++;
+	}
+	else if(hostilityButton.getSelected() == 2)
+	{
+		hostilityUpdate--;
+
+		currentCost++;
+	}
+
 	if(speedUpdate < 1)
 	{
 		speedUpdate = 1;
@@ -523,6 +666,15 @@ void MonsterUI::calculateUpdates()
 	if(resilUpdate < 0)
 	{
 		resilUpdate = 0;
+	}
+	if(hostilityUpdate > 10)
+	{
+		hostilityUpdate = 10;
+	}
+
+	if(hostilityUpdate < 0)
+	{
+		hostilityUpdate = 0;
 	}
 
 	while(minDeathUpdate < 0)
@@ -600,6 +752,11 @@ void MonsterUI::tickEditScreen()
 		strengthButton.tick();
 		speedButton.tick();
 	}
+	else if(page == 3)
+	{
+		carnivoreButton.tick();
+		hostilityButton.tick();
+	}
 	if(getClicking(leftButtonX,leftButtonY,32,32))
 	{
 		if(page > 0)
@@ -618,7 +775,11 @@ void MonsterUI::tickEditScreen()
 	}
 	if(getClicking(saveButtonX,saveButtonY,64,32))
 	{
-		saveMonster();
+		if(GameWindow::getPoints() >= currentCost)
+		{
+			saveMonster();
+			GameWindow::removePoints(currentCost);
+		}
 		index = Species::plMonstersDiscovered.size() - 1;
 	}
 	if(getClicking(saveButtonX-72,saveButtonY,64,32))
@@ -701,6 +862,46 @@ void MonsterUI::drawStats()
 	{
 		siz += "Gargantuan";
 	}
+
+	std::string host = "";
+	if(Species::monsterSpecies[curViewing].agression<3)
+	{
+		host += "Peaceful";
+	}
+	else if(Species::monsterSpecies[curViewing].agression<5)
+	{
+		host += "Normal";
+	}
+	else if(Species::monsterSpecies[curViewing].agression<7)
+	{
+		host += "Aggressive";
+	}
+	else if(Species::monsterSpecies[curViewing].agression<11)
+	{
+		host += "Hostile";
+	}
+
+	std::string tox = "Toxicity: ";
+	if(Species::monsterSpecies[curViewing].toxicity==0)
+	{
+		tox += "Non-Toxic";
+	}
+	else if(Species::monsterSpecies[curViewing].toxicity<3)
+	{
+		tox += "Slightly Toxic";
+	}
+	else if(Species::monsterSpecies[curViewing].toxicity<5)
+	{
+		tox += "Toxic";
+	}
+	else if(Species::monsterSpecies[curViewing].toxicity<7)
+	{
+		tox += "Very Toxic";
+	}
+	else
+	{
+		tox += "Insanely Toxic";
+	}
 	DrawTextEx(font,siz.c_str(),{16,252},24.0f,0.0f,BLACK);
 	std::string ls = "Lives for " + std::to_string(Species::monsterSpecies[curViewing].lifespan) + " generations.";
 	DrawTextEx(font,ls.c_str(),{16,272},24.0f,0.0f,BLACK);
@@ -720,6 +921,9 @@ void MonsterUI::drawStats()
 	{
 		DrawTextEx(font,"CARNIVORE",{256,220},24.0f,0.0f,BLACK);
 	}
+	DrawTextEx(font,tox.c_str(),{226,140},24.0f,0.0f,BLACK);
+	std::string hos = "Hostility: " + host;
+	DrawTextEx(font,hos.c_str(),{16,412},24.0f,0.0f,BLACK);
 }
 void MonsterUI::clickLeft()
 {

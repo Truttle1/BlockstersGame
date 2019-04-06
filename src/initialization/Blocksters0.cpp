@@ -4,6 +4,7 @@
 #include "../GameWindow.h"
 GameWindow * game = new GameWindow();
 Camera2D* camera = new Camera2D();
+
 int main()
 {
 	InitAudioDevice();

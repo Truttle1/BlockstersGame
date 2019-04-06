@@ -16,6 +16,11 @@ public:
 	static Texture2D basic0;
 	static Texture2D basic1;
 	static Texture2D basic2;
+	static Texture2D small0;
+	static Texture2D small1;
+	static Texture2D miniscule0;
+	static Texture2D miniscule1;
+	static Texture2D miniscule2;
 };
 
 #endif /* IMG_MONSTERIMG_H_ */

@@ -62,8 +62,16 @@ void Monster::tick()
 		{
 			rivalStatus = "Player Monster";
 		}
-		GameWindow::showUpperText(monster.name + "    " + rivalStatus + "    Group of " + to_string(arbitraryPopNumber) +
-					"\nHP: " + to_string(hp) + "    Movements Left: " + to_string(monster.speed - movementStage));
+		if(poison == 0)
+		{
+			GameWindow::showUpperText(monster.name + "    " + rivalStatus + "    Group of " + to_string(arbitraryPopNumber) +
+								"\nHP: " + to_string(hp) + "    Movements Left: " + to_string(monster.speed - movementStage)+ "    Age: " + to_string(age));
+		}
+		else
+		{
+			GameWindow::showUpperText(monster.name + "    " + rivalStatus + "    Group of " + to_string(arbitraryPopNumber) +
+								"\nHP: " + to_string(hp) + "    Movements Left: " + to_string(monster.speed - movementStage)+ "    POISON: -" + to_string(poison) + " HP/Gen");
+		}
 	}
 	if(clickedHere)
 	{
@@ -79,6 +87,25 @@ void Monster::tick()
 	}
 	if(clickedHere && !enemy)
 	{
+		removeFog();
+		if(monster.carnivore)
+		{
+			for(unsigned int i=3600; i<GameObject::objects.size();i++)
+			{
+				if(GameObject::objects[i] && GameObject::objects[i]->getName() == "Meat")
+				{
+					Meat* m = static_cast<Meat*>(GameObject::objects[i]);
+					if(m && monster.carnivore && CheckCollisionRecs(m->getBounds(),this->getBounds()) && m->getSpecies() != species)
+					{
+						hp += m->eat();
+					}
+				}
+			}
+		}
+		if(IsKeyPressed(KEY_DELETE))
+		{
+			kill();
+		}
 		if(targetX == -1 && targetY == -1 && movementStage < monster.speed && moved)
 		{
 			if(IsKeyPressed(KEY_W))
@@ -169,11 +196,32 @@ void Monster::render()
 	{
 		DrawRectangle(x,y,8,8,GREEN);
 	}
-	DrawTexture(Species::monsterSpecies[this->species].image,x,y,WHITE);
+	else if(enemy)
+	{
+		if(poison > 0)
+		{
+			DrawRectangle(x,y,8,8,{128,64,128,255});
+		}
+		else
+		{
+			DrawRectangle(x,y,8,8,{192,64,0,255});
+		}
+	}
+	else
+	{
+		if(poison > 0)
+		{
+			DrawRectangle(x,y,8,8,{200,0,200,255});
+		}
+	}
+	if(alive)
+	{
+		DrawTexture(Species::monsterSpecies[this->species].image,x,y,WHITE);
+	}
 
 	int normX = x/16;
 	int normY = y/16;
-	if(!GameObject::fog[normX][normY].isVisible())
+	if(normX < 60 && normY < 60 && normX > -1 && normY > -1 && !GameObject::fog[normX][normY].isVisible())
 	{
 		if(enemy)
 		{
@@ -198,10 +246,16 @@ void Monster::nextGeneration()
 	movementStage = 0;
 	hasEaten = false;
 	bool onLand = true;
+	targetX = -1;
+	targetY = -1;
+	x = (x/8)*8;
+	y = (y/8)*8;
+	moved = true;
+
 	for(uint i = 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* g = GameObject::objects[i];
-		if(g->getName() == "Ground")
+		if(g->getName().compare("Ground")==0)
 		{
 			Ground* g2 = dynamic_cast<Ground*>(g);
 			if(CheckCollisionRecs(g2->getBounds(),this->getBounds()))
@@ -213,9 +267,6 @@ void Monster::nextGeneration()
 			}
 		}
 	}
-	targetX = -1;
-	targetY = -1;
-	moved = true;
 	if(!enemy)
 	{
 		removeFog();
@@ -247,16 +298,17 @@ void Monster::nextGeneration()
 
 	int repValue = 0;
 	//Reproduce
-	if(hp >= monster.size && age > 2 && getNeighborhood()<=monster.maxNew && getNeighborhood()>=monster.minNew && repValue<15)
+	if(hp >= monster.size && age >= 2 && getNeighborhood()<=monster.maxNew && getNeighborhood()>=monster.minNew && repValue<15)
 	{
 		int newX = ((rand()%5)*8)-16;
 		int newY = ((rand()%5)*8)-16;
 		Monster* p = new Monster(this->getX()+newX,this->getY()+newY,this->getSpecies(),enemy);
 		GameObject::objects.push_back(p);
 		hp -= monster.size/2;
-		if(rand()%200<10 && monster.enemy && alive)
+		if(rand()%2000<10 && monster.enemy && alive && !evolutionOccuredYetMonst)
 		{
 			evolve();
+			evolutionOccuredYetMonst = true;
 		}
 	}
 	if(x<0 || x>=960)
@@ -277,9 +329,9 @@ void Monster::nextGeneration()
 		this->kill();
 		//printf("WATER IS BAD\nSPECIES %d HAS LAND VALUE OF %d\n",this->species,Species::plantSpecies[this->species].land);
 	}
-	//Plants at the same location die.
+	//at the same location die.
 	killSameLocation();
-	//Plants die when they live longer than their lifespan.
+	//die when they live longer than their lifespan.
 	if(age>monster.lifespan)
 	{
 		this->kill();
@@ -294,14 +346,15 @@ void Monster::nextGeneration()
 	{
 		this->kill();
 	}
+	attackMonsters();
+	//Age goes up.
+	age++;
+
 	hp -= monster.metabolism;
 	if(hp <= 0)
 	{
 		kill();
 	}
-	attackMonsters();
-	//Age goes up.
-	age++;
 
 	targetX = -1;
 	targetY = -1;
@@ -326,10 +379,10 @@ int Monster::getNeighborhood()
 Rectangle Monster::getBounds()
 {
 	Rectangle r;
-	r.x = x;
-	r.y = y;
-	r.height = 8;
-	r.width = 8;
+	r.x = x+1;
+	r.y = y+1;
+	r.height = 6;
+	r.width = 6;
 	return r;
 }
 void Monster::resetMovement()
@@ -345,22 +398,40 @@ void Monster::nextMove()
 	}
 	if(!moved && movementStage < Species::monsterSpecies[species].speed)
 	{
+		int spd = 1;
 		selectRandomTarget();
+		if(!enemy)
+		{
+			removeFog();
+		}
+
+		if(enemy)
+		{
+			spd = ((monster.speed/2)/4)*4;
+			if(spd < 1)
+			{
+				spd = 1;
+			}
+			if(spd > 8)
+			{
+				spd = 8;
+			}
+		}
 		if(targetX > x)
 		{
-			x++;
+			x+=spd;
 		}
 		else if(targetX < x)
 		{
-			x--;
+			x-=spd;
 		}
 		if(targetY > y)
 		{
-			y++;
+			y+=spd;
 		}
 		else if(targetY < y)
 		{
-			y--;
+			y-=spd;
 		}
 		if(x == targetX && y == targetY)
 		{
@@ -383,12 +454,18 @@ void Monster::nextMove()
 			if(GameObject::objects[i] && GameObject::objects[i]->getName() == "Meat")
 			{
 				Meat* m = static_cast<Meat*>(GameObject::objects[i]);
-				if(monster.carnivore && CheckCollisionRecs(m->getBounds(),this->getBounds()))
+				if(m && monster.carnivore && CheckCollisionRecs(m->getBounds(),this->getBounds()) && m->getSpecies() != species)
 				{
 					hp += m->eat();
 				}
 			}
 		}
+	}
+	hp -= poison;
+	poison -= monster.size;
+	if(poison < 0)
+	{
+		poison = 0;
 	}
 }
 void Monster::nextEat()
@@ -440,9 +517,9 @@ void Monster::selectRandomTarget()
 void Monster::eatPlant(Plant* p)
 {
 	PlantSpecies plant = Species::plantSpecies[p->getSpecies()];
-	if(plant.size <= monster.size+1 && plant.toxicity <= monster.resil)
+	if(plant.size <= monster.size+1 && plant.toxicity <= monster.size)
 	{
-		if(plant.groupSize * plant.size <= monster.groupSize * monster.strength)
+		if(plant.size <= monster.groupSize/8 * (monster.strength+1))
 		{
 			hp += p->getEaten(monster.metabolism);
 			if(hp>monster.metabolism)
@@ -450,6 +527,10 @@ void Monster::eatPlant(Plant* p)
 				hasEaten = true;
 			}
 		}
+	}
+	else if(plant.toxicity > monster.size)
+	{
+		poison += (plant.toxicity-monster.size);
 	}
 }
 
@@ -524,7 +605,7 @@ void Monster::evolve()
 		size--;
 		toxicity+=2;
 	}
-	else if(rand()%100<40)
+	else if(rand()%100<80)
 	{
 		size++;
 	}
@@ -579,13 +660,17 @@ void Monster::evolve()
 	{
 		resil = 1;
 	}
-	if(rand()%100<40)
+	if(rand()%100<70)
 	{
 		agression++;
 	}
 	else if(rand()%100<40)
 	{
 		agression--;
+	}
+	if(carnivore && agression < 7)
+	{
+		agression = 7;
 	}
 	if(agression < 0)
 	{
@@ -614,6 +699,7 @@ void Monster::evolve()
 	newSp.carnivore = carnivore;
 
 
+	newSp.image = monster.image;
 	newSp.name = Species::generateName();
 	newSp.bodyColor = monster.bodyColor;
 	newSp.eyeColor = monster.eyeColor;
@@ -621,17 +707,49 @@ void Monster::evolve()
 	newSp.enemy = true;
 	bool replacedImage = false;
 	replacedImage = true;
-	if(rand()%5<=2)
+	if(newSp.size < 3)
 	{
-		newSp.image = MonsterImg::basic2;
+
+		if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::miniscule0;
+		}
+		else if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::miniscule1;
+		}
+		else
+		{
+			newSp.image = MonsterImg::miniscule2;
+		}
 	}
-	else if(rand()%5<=2)
+	else if(newSp.size < 6)
 	{
-		newSp.image = MonsterImg::basic1;
+
+		if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::small0;
+		}
+		else
+		{
+			newSp.image = MonsterImg::small1;
+		}
 	}
 	else
 	{
-		newSp.image = MonsterImg::basic0;
+
+		if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::basic0;
+		}
+		else if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::basic1;
+		}
+		else
+		{
+			newSp.image = MonsterImg::basic2;
+		}
 	}
 	if(rand()%100<20)
 	{
@@ -645,6 +763,7 @@ void Monster::evolve()
 	}
 	if(replacedImage)
 	{
+		cout << "REPLACING IMAGE IN MONSTER" << endl;
 		int r = rand()%ObjectColors::monsterColorsEyes.size();
 		newSp.eyeColor = ObjectColors::monsterColorsEyes[r];
 		int h = rand()%ObjectColors::monsterColorsHighlight.size();
@@ -680,7 +799,7 @@ void Monster::attackMonsters()
 	Monster* m;
 	for(unsigned int i=0; i < GameObject::objects.size(); i++)
 	{
-		if(GameObject::objects[i]->getName() == "Monster")
+		if(GameObject::objects[i] && GameObject::objects[i]->getName() == "Monster")
 		{
 			if(sqrt(pow(GameObject::objects[i]->getX()-x,2)+pow(GameObject::objects[i]->getY()-y,2)) <= 12)
 			{
@@ -690,7 +809,7 @@ void Monster::attackMonsters()
 				{
 					ok = false;
 				}
-				if(!(rand()%monster.agression < 10))
+				if(rand()%10 >= monster.agression)
 				{
 					ok = false;
 				}
@@ -704,6 +823,20 @@ void Monster::attackMonsters()
 				}
 				if(ok)
 				{
+					int poisoned = 0;
+					MonsterSpecies opponent = Species::monsterSpecies[m->getSpecies()];
+					if(opponent.toxicity > monster.size)
+					{
+						setPoison(opponent.toxicity - monster.size);
+						poisoned = 1;
+					}
+
+					if(opponent.size < monster.toxicity)
+					{
+						m->setPoison(monster.toxicity - opponent.size);
+						poisoned = 2;
+					}
+
 					if(monster.strength >= Species::monsterSpecies[m->getSpecies()].resil && m->getAge())
 					{
 						if(!isEnemy())
@@ -720,13 +853,25 @@ void Monster::attackMonsters()
 						}
 						m->kill();
 					}
+					else
+					{
+						if(poisoned == 1)
+						{
+							EyeCandy* ec = new EyeCandy(getX(),getY(),1);
+						}
+						else if(poisoned == 2)
+						{
+							EyeCandy* ec = new EyeCandy(m->getX(),m->getY(),1);
+						}
+					}
+					/*
 					else if(monster.resil <= Species::monsterSpecies[m->getSpecies()].strength)
 					{
 						EyeCandy* ec = new EyeCandy(getX(),getY(),1);
 						objects.push_back(new Meat(getX(),getY(),Species::monsterSpecies[getSpecies()].size+1,getSpecies()));
 						objects.push_back(ec);
 						kill();
-					}
+					}*/
 				}
 			}
 		}
@@ -745,6 +890,11 @@ int Monster::getAge()
 int Monster::getHP()
 {
 	return hp;
+}
+
+void Monster::setPoison(int amount)
+{
+	poison = amount;
 }
 
 

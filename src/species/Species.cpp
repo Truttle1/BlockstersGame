@@ -6,6 +6,7 @@
  */
 
 #include "Species.h"
+#include <iostream>
 std::vector<PlantSpecies> Species::plantSpecies;
 std::vector<MonsterSpecies> Species::monsterSpecies;
 std::vector<int> Species::plantsDiscovered;
@@ -79,32 +80,46 @@ std::string Species::generateName()
 
 void Species::replaceColors(Texture* image, Color c1, Color c2)
 {
-
-	Color* pixels = (Color*)(GetImageData(GetTextureData(*image)));
-	for(unsigned int i = 0; i<64; i++)
+	std::cout << "REPLACE COLORS" << std::endl;
+	if(image)
 	{
-		Color c = pixels[i];
-		if(c.r == c1.r && c.g == c1.g && c.b == c1.b)
+		Color* pixels = (Color*)(GetImageData(GetTextureData(*image)));
+		for(unsigned int i = 0; i<64; i++)
 		{
-			printf("%d__%d\n",c.g,i);
-			pixels[i] = c2;
+			Color c = pixels[i];
+			if(c.r == c1.r && c.g == c1.g && c.b == c1.b)
+			{
+				pixels[i] = c2;
+			}
+			UpdateTexture(*image,pixels);
 		}
-		UpdateTexture(*image,pixels);
+	}
+	else
+	{
+		std::cout << "ERRORED IMAGE" << std::endl;
 	}
 }
 Texture Species::replaceColorsToImage(Texture* image, Color c1, Color c2)
 {
+	std::cout << "REPLACE COLORS TO IMAGE" << std::endl;
 	Texture ret = LoadTextureFromImage(GetTextureData(*image));
-	Color* pixels = (Color*)(GetImageData(GetTextureData(ret)));
-	for(unsigned int i = 0; i<64; i++)
+	if(image)
 	{
-		Color c = pixels[i];
-		if(c.r == c1.r && c.g == c1.g && c.b == c1.b && c.a == c1.a)
+		Color* pixels = (Color*)(GetImageData(GetTextureData(ret)));
+		for(unsigned int i = 0; i<64; i++)
 		{
-			printf("%d__%d\n",c.g,i);
-			pixels[i] = c2;
+			Color c = pixels[i];
+			if(c.r == c1.r && c.g == c1.g && c.b == c1.b && c.a == c1.a)
+			{
+				pixels[i] = c2;
+			}
+			UpdateTexture(ret,pixels);
 		}
-		UpdateTexture(ret,pixels);
 	}
+	else
+	{
+		std::cout << "ERRORED IMAGE!!!" << std::endl;
+	}
+
 	return ret;
 }

@@ -16,6 +16,7 @@ int GameObject::generation = -15;
 int GameObject::worldMouseX = 0;
 int GameObject::worldMouseY = 0;
 bool GameObject::evolutionOccuredYet = false;
+bool GameObject::evolutionOccuredYetMonst = false;
 Font GameObject::font;
 
 	GameObject::GameObject(int ix, int iy,int w, int h)
@@ -94,6 +95,7 @@ Font GameObject::font;
 	void GameObject::resetEvolution()
 	{
 		evolutionOccuredYet = false;
+		evolutionOccuredYetMonst = false;
 	}
 
 	void GameObject::unClick()
@@ -126,5 +128,21 @@ Font GameObject::font;
 			}
 		}
 		return clicking;
+	}
+
+	int GameObject::getRemovedFog()
+	{
+		int ret = 0;
+		for(int i=0; i<60;i++)
+		{
+			for(int j=0; j<60; j++)
+			{
+				if(!fog[i][j].isVisible())
+				{
+					ret++;
+				}
+			}
+		}
+		return ret;
 	}
 

@@ -33,7 +33,7 @@ void Fog::render()
 	{
 		DrawRectangle(x,y,16,16,BLACK);
 	}
-	if(IsKeyPressed(KEY_G))
+	if(IsKeyPressed(KEY_LEFT_ALT))
 	{
 		visible = false;
 	}
@@ -47,3 +47,4 @@ void Fog::enable()
 {
 	visible = true;
 }
+

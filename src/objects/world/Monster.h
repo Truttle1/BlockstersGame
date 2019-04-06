@@ -34,6 +34,7 @@ class Monster:public GameObject {
 		int getHP();
 		int getAge();
 		int getPopulation();
+		void setPoison(int amount);
 	private:
 		int getNeighborhood();
 		void killSameLocation();
@@ -61,6 +62,7 @@ class Monster:public GameObject {
 		int mouseY;
 		int flashTime;
 		bool clickedHere;
+		int poison = 0;
 };
 
 #endif /* OBJECTS_WORLD_Object_H_ */

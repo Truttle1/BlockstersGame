@@ -41,9 +41,11 @@ Ground::Ground(int ix, int iy,int w, int h, bool newGame) : super(ix,iy,w,h)
 		createTime = 30;
 	}
 }
+
 void Ground::loadFile(Biome iBiome)
 {
 	biome = iBiome;
+	alreadyLoaded = true;
 }
 void Ground::setupWaterGraphics(Texture2D* img0,Texture2D* img1)
 {
@@ -62,7 +64,7 @@ void Ground::tick()
 		createTime++;
 		createNewLand();
 	}
-	else if(internalClock == LENGTH_OF_CREATE)
+	else if(internalClock == LENGTH_OF_CREATE && !alreadyLoaded)
 	{
 		biome = determineBiome();
 		createTime++;

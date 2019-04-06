@@ -22,6 +22,7 @@ public:
 	void render();
 	int getSelected();
 	void addOption(string optionName, int optionCost);
+	void reset();
 private:
 	int x;
 	int y;

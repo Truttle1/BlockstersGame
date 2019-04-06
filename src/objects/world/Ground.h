@@ -46,6 +46,7 @@ class Ground :public GameObject{
 		bool seen = false;
 		void createNewLand();
 		int offset = (rand()%15)+1;
+		bool alreadyLoaded = false;
 
 };
 

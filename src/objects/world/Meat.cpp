@@ -61,13 +61,21 @@ void Meat::setMeatTexture(Texture2D img)
 }
 void Meat::tick()
 {
-	getClicking();
+	if(!UI::isOpen())
+	{
+		getClicking();
+	}
 	if(clickedHere)
 	{
 		string meatType = Species::monsterSpecies[species].name;
 		GameWindow::showUpperText("Meat of " + meatType + "\nContains " + to_string(nutrients) + " HP of Nutrients");
 	}
 }
+int Meat::getSpecies()
+{
+	return species;
+}
+
 void Meat::render()
 {
 	DrawTexture(image,x,y,WHITE);

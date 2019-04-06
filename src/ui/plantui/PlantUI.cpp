@@ -25,13 +25,16 @@ void PlantUI::init()
 }
 void PlantUI::tick()
 {
-	if(getClicking(leftButtonX,leftButtonY,32,32))
+	if(running)
 	{
-		clickLeft();
-	}
-	if(getClicking(rightButtonX,rightButtonY,32,32))
-	{
-		clickRight();
+		if(getClicking(leftButtonX,leftButtonY,32,32))
+		{
+			clickLeft();
+		}
+		if(getClicking(rightButtonX,rightButtonY,32,32))
+		{
+			clickRight();
+		}
 	}
 	if(!open)
 	{
@@ -107,6 +110,29 @@ void PlantUI::drawStats()
 	}
 	DrawTextEx(font,grp.c_str(),{16,232},24.0f,0.0f,BLACK);
 	std::string siz = "Size: ";
+	std::string tox = "Toxity: ";
+	if(Species::plantSpecies[curViewing].toxicity==0)
+	{
+		tox += "Non-Toxic";
+	}
+	else if(Species::plantSpecies[curViewing].toxicity<3)
+	{
+		tox += "Slightly Toxic";
+	}
+	else if(Species::plantSpecies[curViewing].toxicity<5)
+	{
+		tox += "Toxic";
+	}
+	else if(Species::plantSpecies[curViewing].toxicity<7)
+	{
+		tox += "Very Toxic";
+	}
+	else
+	{
+		tox += "Insanely Toxic";
+	}
+
+
 	if(Species::plantSpecies[curViewing].size<3)
 	{
 		siz += "Miniscule";
@@ -127,6 +153,7 @@ void PlantUI::drawStats()
 	{
 		siz += "Gargantuan";
 	}
+
 	DrawTextEx(font,siz.c_str(),{16,252},24.0f,0.0f,BLACK);
 	std::string ls = "Lives for " + std::to_string(Species::plantSpecies[curViewing].lifespan) + " generations.";
 	DrawTextEx(font,ls.c_str(),{16,272},24.0f,0.0f,BLACK);
@@ -134,6 +161,7 @@ void PlantUI::drawStats()
 	DrawTextEx(font,sur.c_str(),{16,292},24.0f,0.0f,BLACK);
 	std::string rep = "Reproduces with " + std::to_string(Species::plantSpecies[curViewing].minNew) + +"-"+ std::to_string(Species::plantSpecies[curViewing].maxNew) + " neighbors.";
 	DrawTextEx(font,rep.c_str(),{16,312},24.0f,0.0f,BLACK);
+	DrawTextEx(font,tox.c_str(),{226,140},24.0f,0.0f,BLACK);
 }
 void PlantUI::clickLeft()
 {

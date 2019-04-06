@@ -18,6 +18,7 @@ public:
 	void nextGeneration();
 	void nextMove();
 	void nextEat();
+	int getSpecies();
 	bool isAlive();
 	Rectangle getBounds();
 	int eat();

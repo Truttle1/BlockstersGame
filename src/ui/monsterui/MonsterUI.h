@@ -63,8 +63,10 @@ class MonsterUI : public UI
 		RadioButton sizeButton2;
 		RadioButton speedButton;
 		RadioButton strengthButton;
+		RadioButton carnivoreButton;
+		RadioButton hostilityButton;
 		int page = 0;
-		int maxPage = 2;
+		int maxPage = 3;
 
 		int minNewUpdate;
 		int maxNewUpdate;
@@ -77,6 +79,8 @@ class MonsterUI : public UI
 		int strengthUpdate;
 		int resilUpdate;
 		int metaUpdate;
+		int hostilityUpdate;
+		bool carnivoreUpdate;
 
 		void calculateUpdates();
 		void saveMonster();
@@ -86,6 +90,8 @@ class MonsterUI : public UI
 
 		float switchButtonX = 128;
 		float switchButtonY = 432;
+
+		int currentCost;
 
 		bool lookingAtPlayer;
 		int index;

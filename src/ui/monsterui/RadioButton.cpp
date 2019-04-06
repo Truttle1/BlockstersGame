@@ -26,7 +26,10 @@ RadioButton::~RadioButton()
 {
 
 }
-
+void RadioButton::reset()
+{
+	selected = 0;
+}
 void RadioButton::tick()
 {
 	for(unsigned int i = 0; i < options.size(); i++)
@@ -55,11 +58,20 @@ void RadioButton::render()
 {
 	for(unsigned int i = 0; i < options.size(); i++)
 	{
-		DrawCircle(x,y+(i*16),6,GREEN);
+		Color c;
+		if(i == 0)
+		{
+			c = BLUE;
+		}
+		else
+		{
+			c = GREEN;
+		}
+		DrawCircle(x,y+(i*16),6,c);
 		DrawCircle(x,y+(i*16),4,WHITE);
 		if(i == selected)
 		{
-			DrawCircle(x,y+(i*16),3,GREEN);
+			DrawCircle(x,y+(i*16),3,c);
 		}
 
 		stringstream str(options[i]);

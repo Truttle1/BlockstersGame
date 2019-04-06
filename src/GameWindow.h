@@ -34,6 +34,8 @@
 #include "ui/fileui/FileUI.h"
 using namespace std;
 class GameWindow {
+
+	typedef enum {TITLE_SCREEN,GAME_SCREEN} GameMode;
 public:
 	GameWindow();
 	virtual ~GameWindow();
@@ -48,9 +50,22 @@ public:
 	static void showUpperText(std::string text);
 	static int getPoints();
 	static void removePoints(int removePoints);
+	static void setPoints(int newPoints);
+	static int pointIncrease;
+	static void setGameScreen();
+	static void setFileName(std::string name);
+	static std::string getFileName();
 
 private:
+	void gameTick();
+	void titleScreenTick();
+	void gameRender();
+	void titleScreenRender();
+	void gameDrawGUI();
+	void titleScreenDrawGUI();
+	static GameMode gameMode;
 	GameObject* groundArray[60][60];
+	static std::string fileName;
 	Texture water0;
 	Texture water1;
 	Texture freshwater0;
@@ -77,6 +92,7 @@ private:
 	UIButton loadUIButton;
 	PlantUI plantUI;
 	MonsterUI monsterUI;
+	Texture titleScreen;
 
 	static Camera2D* camera;
 	int internalClock;
@@ -106,6 +122,18 @@ private:
 	const int BACK_Y = 48;
 	const int BACK_W = 112;
 	const int BACK_H = 64;
+
+	const int playX = 64;
+	const int playY = 192;
+
+	const int loadX = 64;
+	const int loadY = 320;
+
+	int spacer = 0;
+	int spaceTime = 5;
+
+	bool getClicking(int x, int y, int width, int height);
+
 
 };
 

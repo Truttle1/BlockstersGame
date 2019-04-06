@@ -35,9 +35,20 @@ void FileUI::init(bool iSaving)
 	desert = LoadTexture("src/img/sand1.png");
 	mountain = LoadTexture("src/img/mountain.png");
 	snow = LoadTexture("src/img/snow.png");
+	fileName = TextBox(200,420,"My World", GameObject::font);
 }
+
+void FileUI::lighten()
+{
+	dark = false;
+}
+
 void FileUI::tick()
 {
+	if(saving)
+	{
+		dark = false;
+	}
 	if(running)
 	{
 		if(IsKeyPressed(KEY_DOWN))
@@ -61,6 +72,10 @@ void FileUI::tick()
 			{
 				selection--;
 			}
+		}
+		if(dark && getClicking(backX,backY,128,64))
+		{
+			toggle();
 		}
 	}
 	if(saving && running)
@@ -105,20 +120,77 @@ void FileUI::render()
 {
 	if(running)
 	{
-		DrawRectangle(0,0,480,480,WHITE);
-		DrawRectangle(44,130+(selection*28),360,20,{0,255,255,255});
-		if(saving)
+
+		Color bg;
+		Color text;
+		Color defText;
+		Color highlight;
+
+		if(!dark)
 		{
-			DrawTextEx(font,"SAVING FILE",{128,64},48.0f,0.0f,BLACK);
+			bg = WHITE;
+			text = BLACK;
+			defText = BLACK;
+			highlight = {0,255,255,255};
 		}
 		else
 		{
-			DrawTextEx(font,"LOADING FILE",{128,64},48.0f,0.0f,BLACK);
+			bg = BLACK;
+			text = WHITE;
+			defText = WHITE;
+			highlight = {0,192,0,255};
+		}
+		DrawRectangle(0,0,dark ? 640 : 480,480,bg);
+		DrawRectangle(44,130+(selection*28),360,20,highlight);
+		if(saving)
+		{
+			DrawTextEx(font,"SAVING FILE",{128,64},48.0f,0.0f,text);
+			DrawTextEx(font,"File Name:",{64,420},24.0f,0.0f,text);
+			fileName.render();
+			fileName.tick();
+		}
+		else
+		{
+			DrawTextEx(font,"LOADING FILE",{128,64},48.0f,0.0f,text);
 		}
 		for(int i=0; i<10; i++)
 		{
+			std::string name = "";
+			std::ifstream file;
+			file.open("file" + to_string(i) + ".blkstrs");
+			while(file.good() && !file.eof())
+			{
+				string input;
+				getline(file,input);
+
+				stringstream str(input);
+				vector<string> result;
+				while(str.good())
+				{
+					string substring;
+				    getline(str, substring, ',');
+				    result.push_back(substring);
+				}
+				if(result[0].find("NAME") != string::npos)
+				{
+					name += result[1];
+					break;
+				}
+				break;
+			}
+			if(!file.good())
+			{
+				text = RED;
+			}
 			std::string str = "File " + std::to_string(i);
-			DrawTextEx(font,str.c_str(),{48,128+(i*28)},24.0f,0.0f,BLACK);
+			DrawTextEx(font,str.c_str(),{48.0f,128.0f+(i*28.0f)},24.0f,0.0f,text);
+			DrawTextEx(font,name.c_str(),{160.0f,128.0f+(i*28.0f)},24.0f,0.0f,text);
+			text = defText;
+		}
+		if(dark)
+		{
+			DrawRectangle(backX,backY,128,64,WHITE);
+			DrawTextEx(GameObject::font,"BACK",{backX+32,backY+16},36.0f,0.0f,BLACK); // @suppress("Invalid arguments")
 		}
 	}
 }
@@ -132,6 +204,7 @@ void FileUI::toggle()
 	{
 		running = true;
 		open = true;
+		fileName.setText(GameWindow::getFileName());
 	}
 	else if(UI::isOpen() && running)
 	{
@@ -143,20 +216,38 @@ bool FileUI::getRunning()
 {
 	return running;
 }
-void FileUI::load(std::string filename)
+bool FileUI::load(std::string filename)
 {
-
+	std::ifstream file;
+	file.open(filename);
+	if(!file.good())
+	{
+		return false;
+	}
+	GameWindow::setGameScreen();
+	GameObject::setInternalClock(30);
+	dark = false;
 	for(uint i = 0; i < GameObject::objects.size(); i++)
 	{
 		delete GameObject::objects[i];
 		GameObject::objects[i] = nullptr;
 	}
+	for(unsigned int i = 0; i < 60; i++)
+	{
+
+		for(unsigned int j = 0; j < 60; j++)
+		{
+			GameObject::fog[i][j].enable();
+		}
+	}
+	GameWindow::getCamera()->zoom = 0.5f;
 	GameObject::objects.clear();
 	Species::plantSpecies.clear();
 	Species::monsterSpecies.clear();
+	Species::monstersDiscovered.clear();
+	Species::plMonstersDiscovered.clear();
+	Species::plantsDiscovered.clear();
 	GameObject::objects.shrink_to_fit();
-	std::ifstream file;
-	file.open(filename);
 	while(!file.eof())
 	{
 		string input;
@@ -175,6 +266,10 @@ void FileUI::load(std::string filename)
 		{
 			GameObject::generation = stoi(result[1]);
 		}
+		if(result[0].find("NAME") != string::npos)
+		{
+			GameWindow::setFileName(result[1]);
+		}
 		if(result[0].find("PSPECIES") != string::npos)
 		{
 			printf("%d",stoi(result[1]));
@@ -191,7 +286,7 @@ void FileUI::load(std::string filename)
 			ps.groupSize = stoi(result[9]);
 			ps.land = stoi(result[10]);
 			ps.name = result[11];
-			//ps.population = stoi(result[12]);
+			ps.population = 0;
 			ps.lifespan = stoi(result[13]);
 			cout << "IMAGE" << endl;
 			ps.image.height = 8;
@@ -223,7 +318,7 @@ void FileUI::load(std::string filename)
 			printf("land\n");
 			ms.name = result[10];
 			printf("name\n");
-			//ms.population = stoi(result[11]);
+			ms.population = 0;
 			printf("pop\n");
 			ms.metabolism = stoi(result[12]);
 			printf("met\n");
@@ -361,19 +456,40 @@ void FileUI::load(std::string filename)
 		{
 				Species::plMonstersDiscovered.push_back(stoi(result[1]));
 		}
+		if(result[0].find("PTSGN") != string::npos)
+		{
+				GameWindow::pointIncrease = stoi(result[1]);
+		}
+		if(result[0].find("EVLVPTS") != string::npos)
+		{
+				GameWindow::setPoints(stoi(result[1]));
+		}
 	}
 	open = false;
 	running = false;
 	file.close();
+	return true;
 }
 void FileUI::save(std::string filename)
 {
 	std::ofstream file;
 	file.open(filename);
 	{
+		file << "NAME,";
+		file << fileName.getText();
+		file << "\n";
 		file << "GEN,";
 		file << to_string(GameObject::generation);
 		file << "\n";
+
+		file << "PTSGN,";
+		file << to_string(GameWindow::pointIncrease);
+		file << "\n";
+
+		file << "EVLVPTS,";
+		file << GameWindow::getPoints();
+		file << "\n";
+
 		for(unsigned int i = 0; i < Species::plantSpecies.size(); i++)
 		{
 			file << "PSPECIES,";

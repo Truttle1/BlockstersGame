@@ -13,12 +13,13 @@ Plant::Plant(int ix, int iy, int sp) : GameObject(ix,iy,8,8)
 {
 	name = "Plant";
 	species = sp;
+	//cout << "Plant of species " << sp << endl;
 	arbitraryPopNumber = (rand()%10)+1;
 	Species::plantSpecies[species].population += arbitraryPopNumber;
 	age = 0;
 	hp = (Species::plantSpecies[species].size/3)+1;
-
 	bool onLand = true;
+
 	for(uint i = 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* g = GameObject::objects[i];
@@ -59,7 +60,6 @@ void Plant::tick()
 }
 void Plant::loadFromFile(int iHp, int iAge, int iPop)
 {
-	Species::plantSpecies[species].population -= arbitraryPopNumber;
 	hp = iHp;
 	age = iAge;
 	arbitraryPopNumber = iPop;
@@ -94,7 +94,7 @@ void Plant::render()
 	}*/
 	int normX = x/16;
 	int normY = y/16;
-	if(!GameObject::fog[normX][normY].isVisible())
+	if(normX < 60 && normY < 60 && normX > -1 && normY > -1 && !GameObject::fog[normX][normY].isVisible())
 	{
 		DrawTexture(Species::plantSpecies[this->species].image,x,y,WHITE);
 		if(!(std::find(Species::plantsDiscovered.begin(),Species::plantsDiscovered.end(),species) != Species::plantsDiscovered.end()))
@@ -167,10 +167,10 @@ void Plant::nextGeneration()
 		int newY = ((rand()%5)*8)-16;
 		Plant* p = new Plant(this->getX()+newX,this->getY()+newY,this->getSpecies());
 		GameObject::objects.push_back(p);
-		if(rand()%10000<5 && !GameObject::evolutionOccuredYet && alive)
+		if(rand()%5000<50 && !GameObject::evolutionOccuredYet && alive)
 		{
 			evolve();
-			//GameObject::evolutionOccuredYet = true;
+			GameObject::evolutionOccuredYet = true;
 		}
 	}
 	if(x<0 || x>=960)
@@ -203,23 +203,25 @@ int Plant::getNeighborhood()
 	for(uint i = 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
-		int distX = std::abs((this->getX())-(temp->getX()));
-		int distY = std::abs((this->getY())-(temp->getY()));
-		if(distX <= 8 && distY <= 8 && temp != this && temp->getName() == "Plant")
+		if(temp)
 		{
-			//printf("%d, %d :: %d, %d, :: %d, %d\n",x,y,temp->getX(),temp->getY(),distX,distY);
-			c++; //GOT EM
+			int distX = std::abs((this->getX())-(temp->getX()));
+			int distY = std::abs((this->getY())-(temp->getY()));
+			if(distX <= 8 && distY <= 8 && temp != this && temp->getName() == "Plant")
+			{
+				//printf("%d, %d :: %d, %d, :: %d, %d\n",x,y,temp->getX(),temp->getY(),distX,distY);
+				c++; //GOT EM
+			}
 		}
 	}
 	return c;
 }
 void Plant::killSameLocation()
 {
-
 	for(uint i = 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
-		if(temp->getX() == this->getX() && temp->getY() == this->getY() && temp != this && temp->getName() == "Plant")
+		if(temp && temp->getX() == this->getX() && temp->getY() == this->getY() && temp != this && temp->getName() == "Plant")
 		{
 			Plant* p = static_cast<Plant*>(temp);
 			if(p->getAlive() && Species::plantSpecies[p->getSpecies()].toxicity > Species::plantSpecies[species].size)
@@ -264,59 +266,68 @@ void Plant::evolve()
 	int groupSize = Species::plantSpecies[species].groupSize;
 	int lifespan = Species::plantSpecies[species].lifespan;
 
-	if(rand()%100<20)
+	if(rand()%100<50)
 	{
 		minNew--;
 		maxNew++;
 		lifespan--;
 	}
-	else if(maxNew-minNew > 1 && rand()%100<20)
+	else if(maxNew-minNew > 1 && rand()%100<50)
 	{
 		minNew++;
 		maxNew--;
 		lifespan+=2;
 	}
-	if(rand()%100<20)
+	if(rand()%100<50)
 	{
 		minDeath--;
 		maxDeath++;
 		lifespan--;
 	}
-	else if(maxDeath-minDeath > 1 && rand()%100<20)
+	else if(maxDeath-minDeath > 1 && rand()%100<50)
 	{
 		minDeath++;
 		maxDeath--;
 		lifespan+=2;
 	}
-	if(rand()%100<20)
+	if(rand()%100<50)
 	{
 		toxicity+=2;
 		lifespan--;
 	}
-	else if(toxicity > 0 && rand()%100<20)
+	else if(toxicity > 0 && rand()%100<50)
 	{
 		toxicity--;
 		lifespan+=2;
 	}
-	if(rand()%100<20)
+	if(rand()%100<50)
 	{
 		size+=2;
 		lifespan++;
 		toxicity--;
 	}
-	else if(size < 0 && rand()%100<20)
+	else if(size < 0 && rand()%100<50)
 	{
 		size--;
 		toxicity+=2;
 	}
 
-	if(rand()%100<20)
+	if(rand()%100<50)
 	{
 		nutrients++;
 	}
-	if(rand()%100<20)
+	if(rand()%100<50)
 	{
 		nutrients--;
+	}
+
+	if(rand()%100<50)
+	{
+		size++;
+	}
+	if(rand()%100<50)
+	{
+		size--;
 	}
 	if(minNew<0)
 	{
@@ -407,16 +418,21 @@ void Plant::evolve()
 	Species::plantSpecies.push_back(newSp);
 	int newX = ((rand()%5)*8)-16;
 	int newY = ((rand()%5)*8)-16;
+	cout << "MADE IT HERE!" << endl;
 	Plant* p = new Plant(this->getX()+newX,this->getY()+newY,Species::plantSpecies.size()-1);
-	GameObject::objects.push_back(p);
-	int r = rand()%20;
-	for(int i=0; i<(r)+1;i++)
+	if(p)
 	{
-		newX = ((rand()%6)*8)-32;
-		newY = ((rand()%6)*8)-32;
-		Plant* p = new Plant(this->getX()+newX,this->getY()+newY,Species::plantSpecies.size()-1);
 		GameObject::objects.push_back(p);
+		int r = rand()%20;
+		for(int i=0; i<(r)+1;i++)
+		{
+			newX = ((rand()%6)*8)-32;
+			newY = ((rand()%6)*8)-32;
+			Plant* p = new Plant(this->getX()+newX,this->getY()+newY,Species::plantSpecies.size()-1);
+			GameObject::objects.push_back(p);
+		}
 	}
+	cout << "MADE IT HERE! VERSION 2" << endl;
 }
 Rectangle Plant::getBounds()
 {
