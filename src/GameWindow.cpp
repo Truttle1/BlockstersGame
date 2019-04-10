@@ -16,13 +16,21 @@ int GameWindow::points = -4;
 int GameWindow::pointIncrease = 1;
 GameWindow::GameMode GameWindow::gameMode = TITLE_SCREEN;
 std::string GameWindow::fileName = "File Name";
+MessageBox GameWindow::messageBox;
+bool GameWindow::tutorial[100];
 
-GameWindow::GameWindow() {
+GameWindow::GameWindow()
+{
 	moving = false;
 	internalClock = 0;
+	for(int i=0; i<100; i++)
+	{
+		GameWindow::tutorial[i] = false;
+	}
 }
 
-GameWindow::~GameWindow() {
+GameWindow::~GameWindow()
+{
 }
 
 void GameWindow::init(Camera2D* cam)
@@ -32,8 +40,7 @@ void GameWindow::init(Camera2D* cam)
 	camera->target = {0,0};
 	camera->zoom = 0.5f;
 	camera->rotation = 0.0f;
-
-
+	messageBox = MessageBox();
 
 	InitWindow(GameWindow::WINDOW_WIDTH,GameWindow::WINDOW_HEIGHT,"Blocksters - A Truttle1 Game");
 
@@ -101,6 +108,10 @@ void GameWindow::init(Camera2D* cam)
 	MusicHandler::loadMusic();
 	MusicHandler::playFirstSong(MusicHandler::dotWorld);
 
+	messageBox.enable("Welcome!/Hey there, and welcome to this little/monster simulation game!/"
+			"Right now, many small, simple monsters/are living on Blockster World!/"
+			"/Click the Next Generation button to/have your monsters eat, die,/and reproduce now.");
+	messageBox.init(GameObject::font);
 }
 void GameWindow::removePoints(int removePoints)
 {
@@ -180,12 +191,24 @@ void GameWindow::titleScreenTick()
 	}
 }
 
+MessageBox* GameWindow::getMessageBox()
+{
+	return &messageBox;
+}
+
+
 void GameWindow::gameTick()
 {
+	tutorialMessages();
 	if(UI::isOpen())
 	{
 		showingUpperText = false;
 	}
+	if(GameObject::generation == 0 && genPhase == MOVE_PHASE)
+	{
+		doMove();
+	}
+	messageBox.tick();
 	//cout << GetFPS() << " " << GameObject::objects.size() << endl;
 	//cout << camera->offset.x << " " << camera->offset.y << endl;
 	if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
@@ -223,52 +246,53 @@ void GameWindow::gameTick()
 	centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
 	internalClock++;
 	GameObject::setGroundArray(groundArray);
-
-	for(uint i = GameObject::generation < 1 ? 0 : 0; i<GameObject::objects.size();i++)
+	if(!messageBox.getVisible() || GameObject::generation < 0)
 	{
-		vector<GameObject*> objects = GameObject::objects;
-		GameObject* obj = GameObject::objects[i];
-		obj->setInternalClock(internalClock);
-		obj->tick();
-		if(obj != nullptr && moving && obj->getName() == "Monster")
+		for(uint i = GameObject::generation < 1 ? 0 : 0; i<GameObject::objects.size();i++)
 		{
-			obj->nextMove();
+			vector<GameObject*> objects = GameObject::objects;
+			GameObject* obj = GameObject::objects[i];
+			obj->setInternalClock(internalClock);
+			obj->tick();
+			if(obj != nullptr && moving && obj->getName() == "Monster")
+			{
+				obj->nextMove();
+			}
+			GameObject* temp = GameObject::objects[i];
+			if(temp)
+			{
+				if(temp->getName() == "Plant")
+				{
+					Plant* p = static_cast<Plant*>(temp);
+					if(!(p->getAlive()))
+					{
+						delete(GameObject::objects[i]);
+						GameObject::objects[i] = nullptr;
+						GameObject::objects.erase(GameObject::objects.begin()+i);
+					}
+				}
+				if(temp->getName() == "EyeCandy")
+				{
+					EyeCandy* p = static_cast<EyeCandy*>(temp);
+					if((p->getTimeRemaining()<=0))
+					{
+						delete(GameObject::objects[i]);
+						GameObject::objects[i] = nullptr;
+						GameObject::objects.erase(GameObject::objects.begin()+i);
+					}
+				}
+				if(temp->getName() == "Meat")
+				{
+					Meat* p = static_cast<Meat*>(temp);
+					if(!(p->isAlive()))
+					{
+						delete(GameObject::objects[i]);
+						GameObject::objects[i] = nullptr;
+						GameObject::objects.erase(GameObject::objects.begin()+i);
+					}
+				}
+			}
 		}
-		GameObject* temp = GameObject::objects[i];
-		if(temp)
-		{
-			if(temp->getName() == "Plant")
-			{
-				Plant* p = static_cast<Plant*>(temp);
-				if(!(p->getAlive()))
-				{
-					delete(GameObject::objects[i]);
-					GameObject::objects[i] = nullptr;
-					GameObject::objects.erase(GameObject::objects.begin()+i);
-				}
-			}
-			if(temp->getName() == "EyeCandy")
-			{
-				EyeCandy* p = static_cast<EyeCandy*>(temp);
-				if((p->getTimeRemaining()<=0))
-				{
-					delete(GameObject::objects[i]);
-					GameObject::objects[i] = nullptr;
-					GameObject::objects.erase(GameObject::objects.begin()+i);
-				}
-			}
-			if(temp->getName() == "Meat")
-			{
-				Meat* p = static_cast<Meat*>(temp);
-				if(!(p->isAlive()))
-				{
-					delete(GameObject::objects[i]);
-					GameObject::objects[i] = nullptr;
-					GameObject::objects.erase(GameObject::objects.begin()+i);
-				}
-			}
-		}
-
 	}
 	/*
 	for(uint i = 0; i<GameObject::objects.size();i++)
@@ -482,6 +506,7 @@ void GameWindow::gameRender()
 		}
 
 	}
+
 }
 
 void GameWindow::titleScreenDrawGUI()
@@ -548,6 +573,7 @@ void GameWindow::gameDrawGUI()
 			DrawRectangle(0,0,480,96,WHITE);
 			DrawTextEx(GameObject::font,upperText.c_str(),{16,16},24,0.0f,BLACK);
 		}
+		messageBox.render();
 	}
 	else
 	{
@@ -736,6 +762,7 @@ void GameWindow::doMove()
 			}
 		}
 	}
+
 	genPhase = END_PHASE;
 }
 void GameWindow::runUI()
@@ -1009,3 +1036,29 @@ std::string GameWindow::getFileName()
 {
 	return fileName;
 }
+
+void GameWindow::tutorialMessages()
+{
+	if(GameObject::generation == 1 && !tutorial[0])
+	{
+		messageBox.enable("Finish Moving Button"
+				"/If you click the Finish Moving button in"
+				"/the bottom-left corner, your monsters"
+				"/will finish moving.//"
+				"If you don't click it, your monsters will/"
+				"stand still forever. Who's the real/"
+				"monster now?");
+		tutorial[0] = true;
+	}
+	if(GameObject::generation == 2 && !tutorial[1])
+	{
+		messageBox.enable("Selecting Monsters/"
+				"If you click a monster, you will be/"
+				"able to select it.//"
+				"Doing that will let you view helpful/"
+				"information about it.");
+		tutorial[1] = true;
+	}
+}
+
+

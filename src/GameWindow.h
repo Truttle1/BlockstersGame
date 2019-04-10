@@ -32,6 +32,7 @@
 #include "objects/EyeCandy.h"
 #include "objects/world/Meat.h"
 #include "ui/fileui/FileUI.h"
+#include "ui/MessageBox.h"
 using namespace std;
 class GameWindow {
 
@@ -55,6 +56,8 @@ public:
 	static void setGameScreen();
 	static void setFileName(std::string name);
 	static std::string getFileName();
+	static MessageBox* getMessageBox();
+	static bool tutorial[100];
 
 private:
 	void gameTick();
@@ -133,6 +136,8 @@ private:
 	int spaceTime = 5;
 
 	bool getClicking(int x, int y, int width, int height);
+	static MessageBox messageBox;
+	void tutorialMessages();
 
 
 };

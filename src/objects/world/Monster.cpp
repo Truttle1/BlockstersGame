@@ -61,6 +61,20 @@ void Monster::tick()
 		else
 		{
 			rivalStatus = "Player Monster";
+
+			if(!GameWindow::tutorial[2] && !monster.carnivore)
+			{
+				GameWindow::getMessageBox()->enable("Moving Monsters/"
+						"By using the W, A, S, and D keys as/"
+						"directional keys, you are able to/"
+						"move your monsters around the map.//"
+						"This monster is an herbivore, meaning/"
+						"it eats plants.//"
+						"Because of that, it is recommended to/"
+						"move your monsters closer to plants.");
+				GameWindow::tutorial[2] = true;
+				GameWindow::tutorial[1] = true;
+			}
 		}
 		if(poison == 0)
 		{
@@ -201,10 +215,29 @@ void Monster::render()
 		if(poison > 0)
 		{
 			DrawRectangle(x,y,8,8,{128,64,128,255});
+			if(!GameWindow::tutorial[4])
+			{
+				GameWindow::getMessageBox()->enable("Poison/"
+						"If you notice a purple background around/"
+						"a monster, that means it is POISONED.//"
+						"To avoid this, try evolving your/"
+						"monster to have a higher size,/"
+						"looking in the species menu to,/"
+						"find anything toxic, or avoiding/"
+						"getting into battles.");
+				GameWindow::tutorial[4] = true;
+			}
 		}
 		else
 		{
-			DrawRectangle(x,y,8,8,{192,64,0,255});
+			if(monster.carnivore)
+			{
+				DrawRectangle(x,y,8,8,{192,128,0,255});
+			}
+			else
+			{
+				DrawRectangle(x,y,8,8,{192,64,0,255});
+			}
 		}
 	}
 	else
@@ -228,6 +261,19 @@ void Monster::render()
 			if(!(std::find(Species::monstersDiscovered.begin(),Species::monstersDiscovered.end(),species) != Species::monstersDiscovered.end()))
 			{
 				Species::monstersDiscovered.push_back(species);
+
+				if(!GameWindow::tutorial[3] && monster.enemy)
+				{
+					GameWindow::getMessageBox()->enable("Rival Monsters/"
+							"Rival Monsters are monsters that you/"
+							"are unable to influence or control./"
+							"Normally, they just cause trouble.//"
+							"You can tell which monsters are rivals/"
+							"by their red backgrounds.//"
+							"If you evolve a carnivore, they will be/"
+							"able to eat these rival monsters.");
+					GameWindow::tutorial[3] = true;
+				}
 			}
 		}
 		else
@@ -680,6 +726,14 @@ void Monster::evolve()
 	{
 		agression = 10;
 	}
+	if(rand()%100<50)
+	{
+		groupSize+=10;
+	}
+	if(rand()%100<50 && groupSize > 10)
+	{
+		groupSize-=10;
+	}
 	MonsterSpecies newSp = MonsterSpecies();
 	newSp.land = monster.land;
 	newSp.toxicity = toxicity;
@@ -847,7 +901,15 @@ void Monster::attackMonsters()
 						}
 						else
 						{
-							EyeCandy* ec = new EyeCandy(m->getX(),m->getY(),2);
+							EyeCandy* ec;
+							if(m->isEnemy())
+							{
+								ec = new EyeCandy(m->getX(),m->getY(),1);
+							}
+							else
+							{
+								ec = new EyeCandy(m->getX(),m->getY(),2);
+							}
 							objects.push_back(new Meat(m->getX(),m->getY(),Species::monsterSpecies[m->getSpecies()].size+1,m->getSpecies()));
 							objects.push_back(ec);
 						}

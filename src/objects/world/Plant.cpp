@@ -14,7 +14,7 @@ Plant::Plant(int ix, int iy, int sp) : GameObject(ix,iy,8,8)
 	name = "Plant";
 	species = sp;
 	//cout << "Plant of species " << sp << endl;
-	arbitraryPopNumber = (rand()%10)+1;
+	arbitraryPopNumber = (rand()%Species::plantSpecies[species].groupSize)+1;
 	Species::plantSpecies[species].population += arbitraryPopNumber;
 	age = 0;
 	hp = (Species::plantSpecies[species].size/3)+1;
@@ -211,6 +211,15 @@ int Plant::getNeighborhood()
 			{
 				//printf("%d, %d :: %d, %d, :: %d, %d\n",x,y,temp->getX(),temp->getY(),distX,distY);
 				c++; //GOT EM
+				Plant* plnt = static_cast<Plant*>(temp);
+				/*
+				if(Species::plantSpecies[plnt->getSpecies()].toxicity > Species::plantSpecies[species].toxicity)
+				{
+					if(rand()%100 < 60)
+					{
+						kill();
+					}
+				}*/
 			}
 		}
 	}
@@ -329,6 +338,16 @@ void Plant::evolve()
 	{
 		size--;
 	}
+
+	if(rand()%100<50)
+	{
+		groupSize+=10;
+	}
+	if(rand()%100<50 && groupSize > 10)
+	{
+		groupSize-=10;
+	}
+
 	if(minNew<0)
 	{
 		minNew = 0;

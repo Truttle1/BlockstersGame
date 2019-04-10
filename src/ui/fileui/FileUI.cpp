@@ -218,6 +218,7 @@ bool FileUI::getRunning()
 }
 bool FileUI::load(std::string filename)
 {
+	GameWindow::getMessageBox()->disable();
 	std::ifstream file;
 	file.open(filename);
 	if(!file.good())
@@ -464,6 +465,10 @@ bool FileUI::load(std::string filename)
 		{
 				GameWindow::setPoints(stoi(result[1]));
 		}
+		if(result[0].find("TTRL") != string::npos)
+		{
+				GameWindow::tutorial[stoi(result[1])] = stoi(result[2]);
+		}
 	}
 	open = false;
 	running = false;
@@ -572,6 +577,14 @@ void FileUI::save(std::string filename)
 				file << "\n";
 			}
 
+		}
+		for(unsigned int i = 0; i < 100; i++)
+		{
+
+			file << "TTRL,";
+			file << to_string(i);
+			file << ",";
+			file << to_string(GameWindow::tutorial[i]);
 		}
 		for(unsigned int i = 0; i < Species::monsterSpecies.size(); i++)
 		{
