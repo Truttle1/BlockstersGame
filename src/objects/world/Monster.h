@@ -14,6 +14,7 @@
 #include "../../GameWindow.h"
 #include "../EyeCandy.h"
 #include "../../ui/UI.h"
+#include "../../species/Behaviors.h"
 class Monster:public GameObject {
 	public:
 		Monster(int ix, int iy, int sp, bool e);
@@ -45,6 +46,10 @@ class Monster:public GameObject {
 		void eatPlant(Plant* p);
 		void attackMonsters();
 		bool getClicking();
+		void closeFarMovement();
+		void groupingMovement();
+		void plantsMovement();
+		void meatMovement();
 
 		bool hasEaten;
 		int species;
@@ -63,6 +68,7 @@ class Monster:public GameObject {
 		int flashTime;
 		bool clickedHere;
 		int poison = 0;
+		int distanceToFrom(int ex, int ey, int sx, int sy);
 };
 
 #endif /* OBJECTS_WORLD_Object_H_ */

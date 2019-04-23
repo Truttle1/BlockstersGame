@@ -42,6 +42,7 @@ typedef unsigned int uint;
 			static void setInternalClock(int clock);
 			static void setGroundArray(GameObject* groundArray[60][60]);
 			static vector<GameObject*> objects;
+			static vector<GameObject*> monsters;
 			static GameObject* groundArray[60][60];
 			static int generation;
 			static Font font;
@@ -53,7 +54,7 @@ typedef unsigned int uint;
 		private:
 			int stretchSize = 1;
 		protected:
-			static bool evolutionOccuredYet;
+			static int evolutionOccuredYet;
 			static bool evolutionOccuredYetMonst;
 			int x = 0;
 			int y = 0;

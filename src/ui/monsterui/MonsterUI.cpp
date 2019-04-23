@@ -144,6 +144,7 @@ void MonsterUI::init()
 	hostilityButton.addOption("-1 Hostility",1);
 
 	currentCost = 1;
+	initBehaviors();
 }
 void MonsterUI::initEditor(int species)
 {
@@ -164,16 +165,37 @@ void MonsterUI::tick()
 {
 	if(!editing)
 	{
+		if(viewingBehaviors)
+		{
+			for(unsigned int i=0; i<behaviors.size(); i++)
+			{
+				behaviors[i].tick();
+			}
+		}
+
+
+		if(getClicking(behaveToggleX,behaveToggleY,128,32) && GameWindow::tutorial[99])
+		{
+			viewingBehaviors = !viewingBehaviors;
+			if(viewingBehaviors)
+			{
+				setupBehaveIcons();
+			}
+		}
+
 		if(getClicking(leftButtonX,leftButtonY,32,32))
 		{
 			clickLeft();
+			setupBehaveIcons();
 		}
 		if(getClicking(rightButtonX,rightButtonY,32,32))
 		{
 			clickRight();
+			setupBehaveIcons();
 		}
 		if(getClicking(editButtonX,editButtonY,82,32) && Species::monsterSpecies[curViewing].population > 0)
 		{
+			viewingBehaviors = false;
 			birthChanceButton.reset();
 			immuneSystemButton.reset();
 			sizeButton.reset();
@@ -193,6 +215,9 @@ void MonsterUI::tick()
 					ct++;
 				}
 			}
+
+			setupBehaveIcons();
+
 			textBox.setText(Species::generateName());
 		}
 		if(getClicking(switchButtonX,switchButtonY,128,32))
@@ -232,7 +257,29 @@ void MonsterUI::render()
 		{
 			curViewing = lookingAtPlayer ? Species::plMonstersDiscovered[index] : Species::monstersDiscovered[index];
 			DrawTexturePro(Species::monsterSpecies[curViewing].image,srcRect,destRect,origin,0,WHITE);
-			drawStats();
+			if(viewingBehaviors)
+			{
+
+				behaveTexts.clear();
+				int behave;
+				for(unsigned int i=0; i<behaviors.size(); i++)
+				{
+					behaviors[i].render();
+					if(behaviors[i].getStatus() == 1 || behaviors[i].getStatus() == 3)
+					{
+						behaveTexts = behaviors[i].getText();
+						behave = i;
+					}
+				}
+				for(unsigned int i=0; i<behaveTexts.size(); i++)
+				{
+					DrawTextEx(font,behaveTexts[i].c_str(),{284,250+(20*i)},24.0f,0.0f,BLACK); // @suppress("Invalid arguments")
+				}
+			}
+			else
+			{
+				drawStats();
+			}
 			DrawTexture(leftButton,leftButtonX,leftButtonY,WHITE);
 			DrawTexture(rightButton,rightButtonX,rightButtonY,WHITE);
 
@@ -241,6 +288,21 @@ void MonsterUI::render()
 				DrawRectangle(editButtonX,editButtonY,82,32,BLACK);
 				DrawTextEx(font,"Evolve",{editButtonX+8.0f,editButtonY+4.0f},24.0f,0.0f,WHITE);
 				DrawTextEx(font,"Evolve",{editButtonX+9.0f,editButtonY+4.0f},24.0f,0.0f,WHITE);
+			}
+
+			if(GameWindow::tutorial[99])
+			{
+				DrawRectangle(behaveToggleX,behaveToggleY,128,32,BLACK);
+				if(viewingBehaviors)
+				{
+					DrawTextEx(font,"Traits",{behaveToggleX+28.0f,behaveToggleY+4.0f},24.0f,0.0f,WHITE);
+					DrawTextEx(font,"Traits",{behaveToggleX+29.0f,behaveToggleY+4.0f},24.0f,0.0f,WHITE);
+				}
+				else
+				{
+					DrawTextEx(font,"Behaviors",{behaveToggleX+13.0f,behaveToggleY+4.0f},24.0f,0.0f,WHITE);
+					DrawTextEx(font,"Behaviors",{behaveToggleX+14.0f,behaveToggleY+4.0f},24.0f,0.0f,WHITE);
+				}
 			}
 			Color col;
 			const char* str;
@@ -415,10 +477,22 @@ void MonsterUI::drawEditScreen()
 		DrawTextEx(font,sz.c_str(),{284,320},24.0f,0.0f,BLACK);
 		DrawTextEx(font,sizeDesc.c_str(),{284,340},24.0f,0.0f,BLACK);
 	}
+	else if(page == 4)
+	{
+		renderBehaviors();
+	}
 	std::string cost = "COST: " + to_string(currentCost) + " Evolve Pts.";
 	DrawTextEx(font,cost.c_str(),{284,400},24.0f,0.0f,BLACK);
-	DrawTextEx(font,"Traits:",{32,226},36.0f,0.0f,BLACK);
-	DrawTextEx(font,"Traits:",{32,227},36.0f,0.0f,BLACK);
+	if(page <= 3)
+	{
+		DrawTextEx(font,"Traits:",{32,226},36.0f,0.0f,BLACK);
+		DrawTextEx(font,"Traits:",{32,227},36.0f,0.0f,BLACK);
+	}
+	else
+	{
+		DrawTextEx(font,"Behaviors:",{32,226},36.0f,0.0f,BLACK);
+		DrawTextEx(font,"Behaviors:",{32,227},36.0f,0.0f,BLACK);
+	}
 	DrawRectangle(276,248,4,190,BLUE);
 	DrawTexture(leftButton,leftButtonX,leftButtonY,WHITE);
 	DrawTexture(rightButton,rightButtonX-190,rightButtonY,WHITE);
@@ -482,6 +556,10 @@ void MonsterUI::saveMonster()
 	}
 	UpdateTexture(tex,pixels);
 	newSp.image = tex;
+	for(int i=0; i<behaviors.size(); i++)
+	{
+		newSp.behaviors[i] = behaviors[i].getStatus() >= 2;
+	}
 	Species::monsterSpecies.push_back(newSp);
 	Species::plMonstersDiscovered.push_back(Species::monsterSpecies.size()-1);
 
@@ -531,6 +609,13 @@ void MonsterUI::calculateUpdates()
 	hostilityUpdate = Species::monsterSpecies[curViewing].agression;
 	carnivoreUpdate = Species::monsterSpecies[curViewing].carnivore;
 
+	for(unsigned int i = 0; i < behaviors.size(); i++)
+	{
+		if(behaviors[i].getStatus() >= 2 && !Species::monsterSpecies[curViewing].behaviors[i])
+		{
+			currentCost += behaviors[i].getCost();
+		}
+	}
 	if(birthChanceButton.getSelected() == 1)
 	{
 		lifespanUpdate -= 2;
@@ -717,6 +802,15 @@ void MonsterUI::tickEditScreen()
 	}
 	textBox.tick();
 
+
+	if(GameObject::generation >= 30)
+	{
+		maxPage = 4;
+	}
+	else
+	{
+		maxPage = 3;
+	}
 	for(int x=0; x<8; x++)
 	{
 		for(int y=0; y<8; y++)
@@ -756,6 +850,10 @@ void MonsterUI::tickEditScreen()
 	{
 		carnivoreButton.tick();
 		hostilityButton.tick();
+	}
+	else if(page == 4)
+	{
+		tickBehaviors();
 	}
 	if(getClicking(leftButtonX,leftButtonY,32,32))
 	{
@@ -945,3 +1043,195 @@ void MonsterUI::clickRight()
 	}
 }
 
+//Behaviors
+
+void MonsterUI::initBehaviors()
+{
+	//Run Away Behavior
+	Behavior run = Behavior(32,288,2);
+	std::vector<std::string> addTexts;
+	addTexts.push_back("Your monster will");
+	addTexts.push_back("run from other");
+	addTexts.push_back("monsters.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 2 Pts");
+	run.init(LoadTexture("src/img/ui/behaviors/run.png"),addTexts);
+	run.enable();
+	behaviors.push_back(run);
+
+	Behavior chase = Behavior(32,336,2);
+	addTexts.clear();
+	addTexts.push_back("Your monster will");
+	addTexts.push_back("run towards other");
+	addTexts.push_back("monsters.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 2 Pts");
+	chase.init(LoadTexture("src/img/ui/behaviors/chase.png"),addTexts);
+	chase.enable();
+	behaviors.push_back(chase);
+
+	Behavior spread = Behavior(48,304,3);
+	addTexts.clear();
+	addTexts.push_back("Your monsters will");
+	addTexts.push_back("tend to spread");
+	addTexts.push_back("out.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 3 Pts");
+	spread.init(LoadTexture("src/img/ui/behaviors/spread.png"),addTexts);
+	behaviors.push_back(spread);
+
+	Behavior together = Behavior(64,304,3);
+	addTexts.clear();
+	addTexts.push_back("Your monsters will");
+	addTexts.push_back("tend to group");
+	addTexts.push_back("together.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 3 Pts");
+	together.init(LoadTexture("src/img/ui/behaviors/together.png"),addTexts);
+	behaviors.push_back(together);
+
+	Behavior plants = Behavior(48,320,2);
+	addTexts.clear();
+	addTexts.push_back("Your monsters will");
+	addTexts.push_back("try to move toward");
+	addTexts.push_back("plants.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 2 Pts");
+	plants.init(LoadTexture("src/img/ui/behaviors/seekplant.png"),addTexts);
+	behaviors.push_back(plants);
+
+	Behavior meat1 = Behavior(64,320,4);
+	addTexts.clear();
+	addTexts.push_back("Your monsters will");
+	addTexts.push_back("try to move toward");
+	addTexts.push_back("meat.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 4 Pts");
+	meat1.init(LoadTexture("src/img/ui/behaviors/gotomeat.png"),addTexts);
+	behaviors.push_back(meat1);
+
+	Behavior meat2 = Behavior(80,320,5);
+	addTexts.clear();
+	addTexts.push_back("Your monsters will");
+	addTexts.push_back("try to move away");
+	addTexts.push_back("from meat.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 5 Pts");
+	meat2.init(LoadTexture("src/img/ui/behaviors/gofrommeat.png"),addTexts);
+	behaviors.push_back(meat2);
+}
+
+void MonsterUI::getBehaveAllowed()
+{
+	for(unsigned int i = 2; i < behaviors.size(); i++)
+	{
+		behaviors[i].disable();
+	}
+	for(unsigned int i = 0; i < behaviors.size(); i++)
+	{
+		if(behaviors[i].getStatus() >= 2)
+		{
+			behaviors[i].enable();
+		}
+	}
+	behaviors[4].enable();
+	if(behaviors[0].getStatus() >= 2 || behaviors[1].getStatus() >= 2)
+	{
+		behaviors[2].enable();
+		behaviors[3].enable();
+		behaviors[5].enable();
+	}
+	else
+	{
+		behaviors[2].disable();
+		behaviors[3].disable();
+		behaviors[5].disable();
+	}
+	if(behaviors[4].getStatus() >= 2)
+	{
+		behaviors[6].enable();
+	}
+	else
+	{
+		behaviors[6].disable();
+	}
+	for(unsigned int i = 0; i < behaviors.size(); i++)
+	{
+		if(behaviors[i].getStatus() >= 2)
+		{
+			behaviors[i].enable();
+		}
+	}
+}
+
+void MonsterUI::tickBehaviors()
+{
+	getBehaveAllowed();
+	if(getClicking(behaveX,behaveY,64,32))
+	{
+		for(unsigned int i=0; i<behaviors.size(); i++)
+		{
+			if(behaviors[i].getStatus() == 1)
+			{
+				behaviors[i].setStatus(2);
+				unlockedUpdate[i] = true;
+			}
+			else if(behaviors[i].getStatus() == 3)
+			{
+				behaviors[i].setStatus(0);
+				unlockedUpdate[i] = false;
+			}
+		}
+	}
+	for(unsigned int i=0; i<behaviors.size(); i++)
+	{
+		behaviors[i].tick();
+	}
+}
+
+void MonsterUI::renderBehaviors()
+{
+	behaveTexts.clear();
+	int behave;
+	for(unsigned int i=0; i<behaviors.size(); i++)
+	{
+		behaviors[i].render();
+		if(behaviors[i].getStatus() == 1 || behaviors[i].getStatus() == 3)
+		{
+			behaveTexts = behaviors[i].getText();
+			behave = i;
+		}
+	}
+	if(behaveTexts.size() > 0)
+	{
+		DrawRectangle(behaveX,behaveY,64,32,BLACK);
+		if(behaviors[behave].getStatus() < 2)
+		{
+			DrawTextEx(font,"ADD",{behaveX+8,behaveY+4},24.0f,0.0f,WHITE); // @suppress("Invalid arguments")
+		}
+		else
+		{
+			DrawTextEx(font,"REMOVE",{behaveX+8,behaveY+4},18.0f,0.0f,WHITE); // @suppress("Invalid arguments")
+		}
+	}
+	for(unsigned int i=0; i<behaveTexts.size(); i++)
+	{
+		DrawTextEx(font,behaveTexts[i].c_str(),{284,250+(20*i)},24.0f,0.0f,BLACK); // @suppress("Invalid arguments")
+	}
+}
+
+void MonsterUI::setupBehaveIcons()
+{
+	getBehaveAllowed();
+	for(unsigned int i = 0; i < behaviors.size(); i++)
+	{
+		if(Species::monsterSpecies[curViewing].behaviors[i])
+		{
+			behaviors[i].setStatus(2);
+		}
+		else
+		{
+			behaviors[i].setStatus(0);
+		}
+	}
+}

@@ -628,22 +628,34 @@ void GameWindow::setPoints(int newPoints)
 {
 	points = newPoints;
 }
+
+void GameWindow::getPointIncrease()
+{
+	pointIncrease = 1;
+	if(tutorial[99])
+	{
+		pointIncrease += 2;
+	}
+}
+
 void GameWindow::doGeneration()
 {
+	for(unsigned int i = 0; i < Species::plantSpecies.size(); i++)
+	{
+		Species::plantSpecies[i].evolvePass++;
+	}
 	if(GameObject::generation % 5 == 0)
 	{
+		getPointIncrease();
 		points += pointIncrease+1;
 	}
 	GameObject::resetEvolution();
-	for(uint i = 0; i<GameObject::objects.size();i++)
+	for(uint i = GameObject::generation > -10 ? 0 : 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
-		if(temp != nullptr)
+		if(temp->getName().compare("Ground") == 0 || temp->getName().compare("Plant") == 0 || temp->getName().compare("Meat") == 0)
 		{
-			if(temp->getName().compare("Ground") == 0 || temp->getName().compare("Plant") == 0 || temp->getName().compare("Monster") == 0|| temp->getName().compare("Meat") == 0)
-			{
-				temp->nextGeneration();
-			}
+			temp->nextGeneration();
 		}
 		if(temp != nullptr && temp->getName() == "Plant")
 		{
@@ -651,15 +663,26 @@ void GameWindow::doGeneration()
 			if(!(p->getAlive()))
 			{
 				delete(GameObject::objects[i]);
+				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
-		if(temp != nullptr && temp->getName() == "Monster")
+		if(temp->getName() == "Monster")
 		{
 			Monster* p = static_cast<Monster*>(temp);
+			p->nextGeneration();
 			if(!(p->getAlive()))
 			{
+				for(uint j = 0; j<GameObject::monsters.size();j++)
+				{
+					if(GameObject::monsters[j] == GameObject::objects[i])
+					{
+						GameObject::monsters[j] = nullptr;
+						GameObject::monsters.erase(GameObject::monsters.begin()+j);
+					}
+				}
 				delete(GameObject::objects[i]);
+				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
@@ -720,6 +743,11 @@ void GameWindow::doGeneration()
 					GameObject::objects.push_back(m1);
 					GameObject::objects.push_back(m2);
 					GameObject::objects.push_back(m3);
+
+					GameObject::monsters.push_back(m);
+					GameObject::monsters.push_back(m1);
+					GameObject::monsters.push_back(m2);
+					GameObject::monsters.push_back(m3);
 				}
 				Monster* m = new Monster(rx,ry,c,Species::monsterSpecies[c].enemy);
 				Monster* m1 = new Monster(rx,ry+8,c,Species::monsterSpecies[c].enemy);
@@ -735,6 +763,11 @@ void GameWindow::doGeneration()
 				GameObject::objects.push_back(m1);
 				GameObject::objects.push_back(m2);
 				GameObject::objects.push_back(m3);
+
+				GameObject::monsters.push_back(m);
+				GameObject::monsters.push_back(m1);
+				GameObject::monsters.push_back(m2);
+				GameObject::monsters.push_back(m3);
 			}
 		}
 	}
@@ -757,7 +790,16 @@ void GameWindow::doMove()
 			Monster* p = static_cast<Monster*>(temp);
 			if(p && !(p->getAlive()))
 			{
+				for(uint j = 0; j<GameObject::monsters.size();j++)
+				{
+					if(GameObject::monsters[j] == GameObject::objects[i])
+					{
+						GameObject::monsters[j] = nullptr;
+						GameObject::monsters.erase(GameObject::monsters.begin()+j);
+					}
+				}
 				delete(GameObject::objects[i]);
+				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
 			}
 		}
@@ -830,6 +872,7 @@ void GameWindow::generatePlants()
 		sp.nutrients = (rand()%2)+1;
 		sp.population = 0;
 		sp.groupSize = 10;
+		sp.evolvePass = 0;
 
 		if(rand()%10<5)
 		{
@@ -924,6 +967,10 @@ void GameWindow::generateMonsters(bool enemy)
 		sp.image = Species::replaceColorsToImage(&sp.image,ObjectColors::CYAN_BLUE,sp.highlightColor);
 		sp.name = Species::generateName();
 		sp.enemy = false;
+		for(int i=0; i<100; i++)
+		{
+			sp.behaviors[i] = false;
+		}
 		Species::monsterSpecies.push_back(sp);
 	}
 	for(unsigned int i=1; i<10;i++)
@@ -1049,6 +1096,18 @@ void GameWindow::tutorialMessages()
 				"stand still forever. Who's the real/"
 				"monster now?");
 		tutorial[0] = true;
+	}
+	if(GameObject::generation == 30 && !tutorial[99])
+	{
+		messageBox.enable("Behaviors"
+				"/Congrats at surviving until Gen 30!"
+				"/You have unlocked MONSTER BEHAVIORS!"
+				"//"
+				"To use behaviors, you need to scroll past/"
+				"the end of the traits in the Evolve Menu./"
+				"Behaviors will allow you to customize/"
+				"your monsters even more than before!");
+		tutorial[99] = true;
 	}
 	if(GameObject::generation == 2 && !tutorial[1])
 	{

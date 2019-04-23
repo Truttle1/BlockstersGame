@@ -12,6 +12,7 @@
 #include "TextBox.h"
 #include "ColorBox.h"
 #include "RadioButton.h"
+#include "Behavior.h"
 #include <vector>
 class MonsterUI : public UI
 {
@@ -26,6 +27,12 @@ class MonsterUI : public UI
 		void init();
 		void initEditor(int species);
 	private:
+
+		void tickBehaviors();
+		void initBehaviors();
+		void renderBehaviors();
+		int behaveX = 280;
+		int behaveY = 366;
 		bool running;
 		bool editing;
 		int speciesEditing;
@@ -39,6 +46,8 @@ class MonsterUI : public UI
 		void drawStats();
 		Texture2D leftButton;
 		Texture2D rightButton;
+		std::vector<std::string> behaveTexts;
+		std::vector<Behavior> behaviors;
 
 		int leftButtonX = 16;
 		int leftButtonY = 432;
@@ -82,19 +91,28 @@ class MonsterUI : public UI
 		int hostilityUpdate;
 		bool carnivoreUpdate;
 
+		bool unlockedUpdate[99];
+		bool viewingBehaviors = false;
+
+		int behaveToggleX = 300;
+		int behaveToggleY = 432;
+
 		void calculateUpdates();
 		void saveMonster();
 
-		int editButtonX = 300;
+		int editButtonX = 204;
 		int editButtonY = 432;
 
-		float switchButtonX = 128;
+		float switchButtonX = 64;
 		float switchButtonY = 432;
 
 		int currentCost;
 
 		bool lookingAtPlayer;
 		int index;
+
+		void setupBehaveIcons();
+		void getBehaveAllowed();
 };
 
 #endif /* UI_MONSTERUI_PLANTUI_H_ */

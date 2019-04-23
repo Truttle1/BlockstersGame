@@ -271,6 +271,10 @@ bool FileUI::load(std::string filename)
 		{
 			GameWindow::setFileName(result[1]);
 		}
+		if(result[0].find("BHVR") != string::npos)
+		{
+			Species::monsterSpecies[stoi(result[1])].behaviors[stoi(result[2])] = stoi(result[3]);
+		}
 		if(result[0].find("PSPECIES") != string::npos)
 		{
 			printf("%d",stoi(result[1]));
@@ -357,11 +361,17 @@ bool FileUI::load(std::string filename)
 			g->loadFromFile(stoi(result[5]),stoi(result[4]),stoi(result[6]));
 			GameObject::objects.push_back(g);
 		}
+		if(result[0].find("MEAT") != string::npos)
+		{
+			Meat* g = new Meat(stoi(result[1]),stoi(result[2]),stoi(result[3]),stoi(result[4]));
+			GameObject::objects.push_back(g);
+		}
 		if(result[0].find("MONSTER") != string::npos)
 		{
 			Monster* g = new Monster(stoi(result[1]),stoi(result[2]),stoi(result[3]),stoi(result[7]));
 			g->loadFromFile(stoi(result[4]),stoi(result[6]),stoi(result[6]));
 			GameObject::objects.push_back(g);
+			GameObject::monsters.push_back(g);
 		}
 		if(result[0].find("P_PIXEL") != string::npos)
 		{
@@ -585,6 +595,7 @@ void FileUI::save(std::string filename)
 			file << to_string(i);
 			file << ",";
 			file << to_string(GameWindow::tutorial[i]);
+			file << "\n";
 		}
 		for(unsigned int i = 0; i < Species::monsterSpecies.size(); i++)
 		{
@@ -660,6 +671,19 @@ void FileUI::save(std::string filename)
 			file << ",";
 			file << to_string(Species::monsterSpecies[i].highlightColor.b);
 			file << "\n";
+
+
+			for(unsigned int j = 0; j<100; j++)
+			{
+				file << "BHVR,";
+				file << to_string(i);
+				file << ",";
+				file << to_string(j);
+				file << ",";
+				file << to_string(Species::monsterSpecies[i].behaviors[j]);
+				file << "\n";
+			}
+
 			for(unsigned int j = 0; j<64; j++)
 			{
 				Texture image = Species::monsterSpecies[i].image;
@@ -722,6 +746,19 @@ void FileUI::save(std::string filename)
 				file << to_string(g->getHP()).c_str();
 				file << ",";
 				file << to_string(g->getPopulation()).c_str();
+				file << "\n";
+			}
+			if(GameObject::objects[i]->getName() == "Meat")
+			{
+				Meat* g = static_cast<Meat*>(GameObject::objects[i]);
+				file << "MEAT,";
+				file << to_string(g->getX()).c_str();
+				file << ",";
+				file << to_string(g->getY()).c_str();
+				file << ",";
+				file << to_string(g->getNutrients()).c_str();
+				file << ",";
+				file << to_string(g->getSpecies()).c_str();
 				file << "\n";
 			}
 			if(GameObject::objects[i]->getName() == "Monster")

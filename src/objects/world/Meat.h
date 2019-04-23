@@ -19,6 +19,7 @@ public:
 	void nextMove();
 	void nextEat();
 	int getSpecies();
+	int getNutrients();
 	bool isAlive();
 	Rectangle getBounds();
 	int eat();

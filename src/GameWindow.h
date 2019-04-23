@@ -138,6 +138,7 @@ private:
 	bool getClicking(int x, int y, int width, int height);
 	static MessageBox messageBox;
 	void tutorialMessages();
+	void getPointIncrease();
 
 
 };

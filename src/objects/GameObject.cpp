@@ -9,13 +9,14 @@
 #include "../GameWindow.h"
 
 vector<GameObject*> GameObject::objects;
+vector<GameObject*> GameObject::monsters;
 GameObject* GameObject::groundArray[60][60];
 Fog GameObject::fog[60][60];
 int GameObject::internalClock = 0;
 int GameObject::generation = -15;
 int GameObject::worldMouseX = 0;
 int GameObject::worldMouseY = 0;
-bool GameObject::evolutionOccuredYet = false;
+int GameObject::evolutionOccuredYet = false;
 bool GameObject::evolutionOccuredYetMonst = false;
 Font GameObject::font;
 

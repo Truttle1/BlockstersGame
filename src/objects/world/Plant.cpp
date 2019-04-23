@@ -128,6 +128,10 @@ void Plant::nextGeneration()
 	{
 		this->kill();
 	}
+	if(rand()%40 < Species::plantSpecies[this->species].toxicity)
+	{
+		kill();
+	}
 	int repValue;
 	if(Species::plantSpecies[this->species].land)
 	{
@@ -161,16 +165,16 @@ void Plant::nextGeneration()
 		repValue = rand()%26;
 	}
 	//Reproduce
-	if(age>=(Species::plantSpecies[this->species].lifespan/8) && getNeighborhood()<Species::plantSpecies[this->species].maxNew && getNeighborhood()>Species::plantSpecies[this->species].minNew && repValue<15)
+	if(age>=(Species::plantSpecies[this->species].lifespan/8) && getNeighborhood()<Species::plantSpecies[this->species].maxNew && getNeighborhood()>Species::plantSpecies[this->species].minNew && repValue<17)
 	{
 		int newX = ((rand()%5)*8)-16;
 		int newY = ((rand()%5)*8)-16;
 		Plant* p = new Plant(this->getX()+newX,this->getY()+newY,this->getSpecies());
 		GameObject::objects.push_back(p);
-		if(rand()%5000<50 && !GameObject::evolutionOccuredYet && alive)
+		if(rand()%5000<30 && GameObject::evolutionOccuredYet < 2 && alive && Species::plantSpecies[this->species].evolvePass > 0)
 		{
 			evolve();
-			GameObject::evolutionOccuredYet = true;
+			GameObject::evolutionOccuredYet++;
 		}
 	}
 	if(x<0 || x>=960)
@@ -200,7 +204,7 @@ int Plant::getSpecies()
 int Plant::getNeighborhood()
 {
 	int c = 0;
-	for(uint i = 0; i<GameObject::objects.size();i++)
+	for(uint i = 3600; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
 		if(temp)
@@ -227,7 +231,7 @@ int Plant::getNeighborhood()
 }
 void Plant::killSameLocation()
 {
-	for(uint i = 0; i<GameObject::objects.size();i++)
+	for(uint i = 3600; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
 		if(temp && temp->getX() == this->getX() && temp->getY() == this->getY() && temp != this && temp->getName() == "Plant")
@@ -274,6 +278,7 @@ void Plant::evolve()
 	int toxicity = Species::plantSpecies[species].toxicity;
 	int groupSize = Species::plantSpecies[species].groupSize;
 	int lifespan = Species::plantSpecies[species].lifespan;
+	Species::plantSpecies[species].evolvePass = -7;
 
 	if(rand()%100<50)
 	{
@@ -375,11 +380,24 @@ void Plant::evolve()
 	newSp.stemColor = Species::plantSpecies[species].stemColor;
 	newSp.flowerColor = Species::plantSpecies[species].flowerColor;
 	newSp.highlightColor = Species::plantSpecies[species].highlightColor;
+	newSp.evolvePass = -6;
 	bool replacedImage = false;
 	if(true)
 	{
 		replacedImage = true;
-		if(rand()%5<=2 && newSp.size>=2)
+		if(rand()%5<=2 && newSp.size>=4)
+		{
+			newSp.image = PlantImg::medium0;
+		}
+		else if(rand()%5<=2 && newSp.size>=4)
+		{
+			newSp.image = PlantImg::medium1;
+		}
+		else if(rand()%5<=2 && newSp.size>=3)
+		{
+			newSp.image = PlantImg::medium2;
+		}
+		else if(rand()%5<=2 && newSp.size>=2)
 		{
 			newSp.image = PlantImg::small0;
 		}
@@ -390,6 +408,10 @@ void Plant::evolve()
 		else if(rand()%5<=2 && newSp.size>=2)
 		{
 			newSp.image = PlantImg::small2;
+		}
+		else if(rand()%5<=2 && newSp.size>=2)
+		{
+			newSp.image = PlantImg::small3;
 		}
 		else if(rand()%5<=1)
 		{

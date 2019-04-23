@@ -52,6 +52,14 @@ void Monster::tick()
 	getClicking();
 	if(clickedHere && !UI::isOpen())
 	{
+		if(name != "Monster")
+		{
+			kill();
+			name = "Monster";
+		}
+		Camera2D* cam = GameWindow::getCamera();
+		int a = -GameWindow::getCamera()->offset.x / GameWindow::getCamera()->zoom;
+		std::cout << a << " :: " << x << endl;
 		string rivalStatus = " ";
 		if(enemy)
 		{
@@ -76,7 +84,7 @@ void Monster::tick()
 				GameWindow::tutorial[1] = true;
 			}
 		}
-		if(poison == 0)
+		if(poison == 0 && alive)
 		{
 			GameWindow::showUpperText(monster.name + "    " + rivalStatus + "    Group of " + to_string(arbitraryPopNumber) +
 								"\nHP: " + to_string(hp) + "    Movements Left: " + to_string(monster.speed - movementStage)+ "    Age: " + to_string(age));
@@ -111,7 +119,7 @@ void Monster::tick()
 					Meat* m = static_cast<Meat*>(GameObject::objects[i]);
 					if(m && monster.carnivore && CheckCollisionRecs(m->getBounds(),this->getBounds()) && m->getSpecies() != species)
 					{
-						hp += m->eat();
+						hp += m->eat()+4;
 					}
 				}
 			}
@@ -158,19 +166,19 @@ void Monster::tick()
 			{
 				x++;
 			}
-			if(x > targetX)
+			else if(x > targetX)
 			{
 				x--;
 			}
-			if(y < targetY)
+			else if(y < targetY)
 			{
 				y++;
 			}
-			if(y > targetY)
+			else if(y > targetY)
 			{
 				y--;
 			}
-			if(x == targetX && y == targetY)
+			else if(x == targetX && y == targetY)
 			{
 				moved = true;
 				targetX = -1;
@@ -188,7 +196,7 @@ bool Monster::getClicking()
 	if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
 	{
 		int mx = GetMouseX() / GameWindow::getCamera()->zoom - GameWindow::getCamera()->offset.x / GameWindow::getCamera()->zoom;
-		int my = GetMouseY() / GameWindow::getCamera()->zoom - GameWindow::getCamera()->offset.y / GameWindow::getCamera()->zoom ;
+		int my = GetMouseY() / GameWindow::getCamera()->zoom - GameWindow::getCamera()->offset.y / GameWindow::getCamera()->zoom;
 		mouseX = mx;
 		mouseY = my;
 		clicking = (mx >= x && my >= y && mx <= x+width && my <= y+height);
@@ -215,7 +223,7 @@ void Monster::render()
 		if(poison > 0)
 		{
 			DrawRectangle(x,y,8,8,{128,64,128,255});
-			if(!GameWindow::tutorial[4])
+			if(!GameWindow::tutorial[4] && GameObject::generation >= 5 )
 			{
 				GameWindow::getMessageBox()->enable("Poison/"
 						"If you notice a purple background around/"
@@ -262,7 +270,7 @@ void Monster::render()
 			{
 				Species::monstersDiscovered.push_back(species);
 
-				if(!GameWindow::tutorial[3] && monster.enemy)
+				if(!GameWindow::tutorial[3] && monster.enemy && GameObject::generation >= 4)
 				{
 					GameWindow::getMessageBox()->enable("Rival Monsters/"
 							"Rival Monsters are monsters that you/"
@@ -287,6 +295,7 @@ void Monster::render()
 	}
 
 }
+
 void Monster::nextGeneration()
 {
 	movementStage = 0;
@@ -344,14 +353,15 @@ void Monster::nextGeneration()
 
 	int repValue = 0;
 	//Reproduce
-	if(hp >= monster.size && age >= 2 && getNeighborhood()<=monster.maxNew && getNeighborhood()>=monster.minNew && repValue<15)
+	if(hp >= monster.size && age >= 2 && getNeighborhood()<=monster.maxNew && getNeighborhood()>=monster.minNew && repValue<20)
 	{
 		int newX = ((rand()%5)*8)-16;
 		int newY = ((rand()%5)*8)-16;
 		Monster* p = new Monster(this->getX()+newX,this->getY()+newY,this->getSpecies(),enemy);
 		GameObject::objects.push_back(p);
+		GameObject::monsters.push_back(p);
 		hp -= monster.size/2;
-		if(rand()%2000<10 && monster.enemy && alive && !evolutionOccuredYetMonst)
+		if(rand()%2000<70 && monster.enemy && alive && !evolutionOccuredYetMonst)
 		{
 			evolve();
 			evolutionOccuredYetMonst = true;
@@ -404,6 +414,7 @@ void Monster::nextGeneration()
 
 	targetX = -1;
 	targetY = -1;
+	movementStage = 0;
 }
 
 int Monster::getNeighborhood()
@@ -422,6 +433,7 @@ int Monster::getNeighborhood()
 	}
 	return c;
 }
+
 Rectangle Monster::getBounds()
 {
 	Rectangle r;
@@ -431,10 +443,12 @@ Rectangle Monster::getBounds()
 	r.width = 6;
 	return r;
 }
+
 void Monster::resetMovement()
 {
 	moved = false;
 }
+
 void Monster::nextMove()
 {
 	hasEaten = false;
@@ -445,7 +459,47 @@ void Monster::nextMove()
 	if(!moved && movementStage < Species::monsterSpecies[species].speed)
 	{
 		int spd = 1;
-		selectRandomTarget();
+
+		int amountOfOptions = 1;
+		if(monster.behaviors[Behaviors::RUN_MONSTERS] || monster.behaviors[Behaviors::TO_MONSTERS])
+		{
+			amountOfOptions++;
+		}
+		if(monster.behaviors[Behaviors::SPREAD] || monster.behaviors[Behaviors::TOGETHER])
+		{
+			amountOfOptions++;
+		}
+		if(monster.behaviors[Behaviors::TO_PLANTS])
+		{
+			amountOfOptions++;
+		}
+		if(monster.behaviors[Behaviors::TO_MEAT] || monster.behaviors[Behaviors::AWAY_MEAT])
+		{
+			amountOfOptions++;
+		}
+		if(targetX == -1 && targetY == -1)
+		{
+			if(((!monster.carnivore && hp < monster.size+(2*monster.metabolism)) || rand()%amountOfOptions<=3) && monster.behaviors[Behaviors::TO_PLANTS])
+			{
+				plantsMovement();
+			}
+			else if(((monster.carnivore && hp< monster.size+(2*monster.metabolism)) || rand()%amountOfOptions<=3) && monster.behaviors[Behaviors::TO_MEAT])
+			{
+				meatMovement();
+			}
+			else if(rand()%amountOfOptions<=2 && (monster.behaviors[2] || monster.behaviors[3]))
+			{
+				groupingMovement();
+			}
+			else if(monster.behaviors[0] || monster.behaviors[1])
+			{
+				closeFarMovement();
+			}
+			else
+			{
+				selectRandomTarget();
+			}
+		}
 		if(!enemy)
 		{
 			removeFog();
@@ -462,6 +516,20 @@ void Monster::nextMove()
 			{
 				spd = 8;
 			}
+		}
+		Camera2D* cam = GameWindow::getCamera();
+
+		int a = -GameWindow::getCamera()->offset.x / GameWindow::getCamera()->zoom;
+		int b = -GameWindow::getCamera()->offset.y / GameWindow::getCamera()->zoom;
+		if(x < a || x > a + GameWindow::getCamera()->zoom*480)
+		{
+			targetX = x;
+			targetY = y;
+		}
+		else if(y < b || y > b + GameWindow::getCamera()->zoom*480)
+		{
+			targetX = x;
+			targetY = y;
 		}
 		if(targetX > x)
 		{
@@ -494,7 +562,7 @@ void Monster::nextMove()
 	}
 	if(monster.carnivore)
 	{
-		cout << "CARNIVORE" << endl;
+		//cout << "CARNIVORE" << endl;
 		for(unsigned int i=3600; i<GameObject::objects.size();i++)
 		{
 			if(GameObject::objects[i] && GameObject::objects[i]->getName() == "Meat")
@@ -734,6 +802,10 @@ void Monster::evolve()
 	{
 		groupSize-=10;
 	}
+	if(rand()%100<35)
+	{
+		size++;
+	}
 	MonsterSpecies newSp = MonsterSpecies();
 	newSp.land = monster.land;
 	newSp.toxicity = toxicity;
@@ -837,6 +909,7 @@ void Monster::evolve()
 	int newY = ((rand()%5)*8)-16;
 	Monster* p = new Monster(this->getX()+newX,this->getY()+newY,Species::monsterSpecies.size()-1,true);
 	GameObject::objects.push_back(p);
+	GameObject::monsters.push_back(p);
 	int r = rand()%5;
 	for(int i=0; i<(r)+1;i++)
 	{
@@ -845,20 +918,22 @@ void Monster::evolve()
 		Monster* p = new Monster(this->getX()+newX,this->getY()+newY,Species::monsterSpecies.size()-1,true);
 		Monster* p1 = new Monster(this->getX()+newX,this->getY()+newY+8,Species::monsterSpecies.size()-1,true);
 		GameObject::objects.push_back(p);
+		GameObject::monsters.push_back(p);
 		GameObject::objects.push_back(p1);
+		GameObject::monsters.push_back(p1);
 	}
 }
 void Monster::attackMonsters()
 {
 	Monster* m;
-	for(unsigned int i=0; i < GameObject::objects.size(); i++)
+	for(unsigned int i=0; i < GameObject::monsters.size(); i++)
 	{
-		if(GameObject::objects[i] && GameObject::objects[i]->getName() == "Monster")
+		if(GameObject::monsters[i] && GameObject::monsters[i]->getName() == "Monster")
 		{
-			if(sqrt(pow(GameObject::objects[i]->getX()-x,2)+pow(GameObject::objects[i]->getY()-y,2)) <= 12)
+			if(sqrt(pow(GameObject::monsters[i]->getX()-x,2)+pow(GameObject::monsters[i]->getY()-y,2)) <= 12)
 			{
 				bool ok = true;
-				m = static_cast<Monster*>(GameObject::objects[i]);
+				m = static_cast<Monster*>(GameObject::monsters[i]);
 				if(m->getSpecies() == species)
 				{
 					ok = false;
@@ -959,4 +1034,253 @@ void Monster::setPoison(int amount)
 	poison = amount;
 }
 
+int Monster::distanceToFrom(int ex, int ey, int sx, int sy)
+{
+	return std::sqrt(std::pow(std::abs(sx-ex),2) + std::pow(std::abs(sy-ey),2));
+}
 
+void Monster::closeFarMovement()
+{
+	selectRandomTarget();
+	cout << "HERE" << endl;
+	if(monster.behaviors[0])
+	{
+		Monster* closestMonster = NULL;
+		int shortestDist = 99999;
+		for(unsigned int i=0; i<GameObject::monsters.size(); i++)
+		{
+			if(monsters[i]->getName() == "Monster")
+			{
+				Monster* monst = static_cast<Monster*>(monsters[i]);
+				if(Species::monsterSpecies[monst->getSpecies()].enemy != monster.enemy && Species::monsterSpecies[monst->getSpecies()].land == monster.land)
+				{
+					int dist = std::abs(distanceToFrom(monsters[i]->getX(),monsters[i]->getY(),x,y));
+
+					if(shortestDist > dist)
+					{
+						shortestDist = dist;
+						closestMonster = monst;
+					}
+				}
+			}
+		}
+		for(int i=0; i<100; i++)
+		{
+			if(!closestMonster)
+			{
+				break;
+			}
+			targetX = -1;
+			targetY = -1;
+			selectRandomTarget();
+			if(std::abs(distanceToFrom(closestMonster->getX(),closestMonster->getY(),x,y)) < std::abs(distanceToFrom(closestMonster->getX(),closestMonster->getY(),targetX,targetY)))
+			{
+				break;
+			}
+		}
+	}
+	if(monster.behaviors[1])
+	{
+		Monster* closestMonster = NULL;
+		int shortestDist = 99999;
+		for(unsigned int i=0; i<GameObject::monsters.size(); i++)
+		{
+			if(monsters[i]->getName() == "Monster")
+			{
+				Monster* monst = static_cast<Monster*>(monsters[i]);
+				if(Species::monsterSpecies[monst->getSpecies()].enemy != monster.enemy && Species::monsterSpecies[monst->getSpecies()].land == monster.land)
+				{
+					int dist = std::abs(distanceToFrom(monsters[i]->getX(),monsters[i]->getY(),x,y));
+					if(shortestDist > dist)
+					{
+						shortestDist = dist;
+						closestMonster = monst;
+					}
+				}
+			}
+		}
+		std::cout << "s:" << shortestDist << endl;
+		for(int i=0; i<100; i++)
+		{
+			if(!closestMonster)
+			{
+				break;
+			}
+			targetX = -1;
+			targetY = -1;
+			selectRandomTarget();
+			if(std::abs(distanceToFrom(closestMonster->getX(),closestMonster->getY(),x,y)) > std::abs(distanceToFrom(closestMonster->getX(),closestMonster->getY(),targetX,targetY)))
+			{
+				break;
+			}
+		}
+	}
+}
+
+void Monster::groupingMovement()
+{
+	selectRandomTarget();
+	cout << "HERE" << endl;
+	if(monster.behaviors[2])
+	{
+		Monster* closestMonster = NULL;
+		int shortestDist = 99999;
+		for(unsigned int i=0; i<GameObject::monsters.size(); i++)
+		{
+			if(monsters[i]->getName() == "Monster")
+			{
+				Monster* monst = static_cast<Monster*>(monsters[i]);
+				if(monst->getSpecies() == species && monst != this)
+				{
+					int dist = std::abs(distanceToFrom(monsters[i]->getX(),monsters[i]->getY(),x,y));
+
+					if(shortestDist > dist)
+					{
+						shortestDist = dist;
+						closestMonster = monst;
+					}
+				}
+			}
+		}
+		for(int i=0; i<100; i++)
+		{
+			if(!closestMonster)
+			{
+				break;
+			}
+			targetX = -1;
+			targetY = -1;
+			selectRandomTarget();
+			if(std::abs(distanceToFrom(closestMonster->getX(),closestMonster->getY(),x,y)) < std::abs(distanceToFrom(closestMonster->getX(),closestMonster->getY(),targetX,targetY)))
+			{
+				break;
+			}
+		}
+	}
+	if(monster.behaviors[3])
+	{
+		Monster* closestMonster = NULL;
+		int shortestDist = 99999;
+		for(unsigned int i=0; i<GameObject::monsters.size(); i++)
+		{
+			if(monsters[i]->getName() == "Monster")
+			{
+				Monster* monst = static_cast<Monster*>(monsters[i]);
+				if(monst->getSpecies() == species && monst != this)
+				{
+					int dist = std::abs(distanceToFrom(monsters[i]->getX(),monsters[i]->getY(),x,y));
+					if(shortestDist > dist)
+					{
+						shortestDist = dist;
+						closestMonster = monst;
+					}
+				}
+			}
+		}
+		std::cout << "s:" << shortestDist << endl;
+		for(int i=0; i<100; i++)
+		{
+			if(!closestMonster)
+			{
+				break;
+			}
+			targetX = -1;
+			targetY = -1;
+			selectRandomTarget();
+			if(std::abs(distanceToFrom(closestMonster->getX(),closestMonster->getY(),x,y)) > std::abs(distanceToFrom(closestMonster->getX(),closestMonster->getY(),targetX,targetY)))
+			{
+				break;
+			}
+		}
+	}
+}
+
+void Monster::plantsMovement()
+{
+	selectRandomTarget();
+	Plant* closestPlant = NULL;
+	int shortestDist = 99999;
+	for(unsigned int i=0; i<GameObject::objects.size(); i++)
+	{
+		if(objects[i]->getName() == "Plant")
+		{
+			Plant* plnt = static_cast<Plant*>(objects[i]);
+			if(Species::plantSpecies[plnt->getSpecies()].land == monster.land)
+			{
+				int dist = std::abs(distanceToFrom(objects[i]->getX(),objects[i]->getY(),x,y));
+
+				if(shortestDist > dist)
+				{
+					shortestDist = dist;
+					closestPlant = plnt;
+				}
+			}
+		}
+	}
+	for(int i=0; i<100; i++)
+	{
+		if(!closestPlant)
+		{
+			break;
+		}
+		targetX = -1;
+		targetY = -1;
+		selectRandomTarget();
+		if(std::abs(distanceToFrom(closestPlant->getX(),closestPlant->getY(),x,y)) > std::abs(distanceToFrom(closestPlant->getX(),closestPlant->getY(),targetX,targetY)))
+		{
+			break;
+		}
+	}
+}
+
+void Monster::meatMovement()
+{
+	selectRandomTarget();
+	cout << "HERE" << endl;
+	Meat* closestMeat = NULL;
+	int shortestDist = 99999;
+	for(unsigned int i=0; i<GameObject::objects.size(); i++)
+	{
+		if(objects[i]->getName() == "Meat")
+		{
+			Meat* meat = static_cast<Meat*>(objects[i]);
+			if(Species::monsterSpecies[meat->getSpecies()].land == monster.land)
+			{
+				int dist = std::abs(distanceToFrom(meat->getX(),meat->getY(),x,y));
+
+				if(shortestDist > dist)
+				{
+					if(monster.behaviors[Behaviors::TO_MEAT] && meat->getSpecies() != species)
+					{
+						shortestDist = dist;
+						closestMeat = meat;
+					}
+				}
+			}
+		}
+	}
+	for(int i=0; i<100; i++)
+	{
+		if(!closestMeat)
+		{
+			break;
+		}
+		targetX = -1;
+		targetY = -1;
+		selectRandomTarget();
+		if(monster.behaviors[Behaviors::TO_MEAT])
+		{
+			if(std::abs(distanceToFrom(closestMeat->getX(),closestMeat->getY(),x,y)) > std::abs(distanceToFrom(closestMeat->getX(),closestMeat->getY(),targetX,targetY)))
+			{
+				break;
+			}
+		}
+		else if(monster.behaviors[Behaviors::AWAY_MEAT])
+		{
+			if(std::abs(distanceToFrom(closestMeat->getX(),closestMeat->getY(),x,y)) < std::abs(distanceToFrom(closestMeat->getX(),closestMeat->getY(),targetX,targetY)))
+			{
+				break;
+			}
+		}
+	}
+}

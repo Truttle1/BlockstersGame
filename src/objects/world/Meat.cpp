@@ -76,6 +76,11 @@ int Meat::getSpecies()
 	return species;
 }
 
+int Meat::getNutrients()
+{
+	return nutrients;
+}
+
 void Meat::render()
 {
 	DrawTexture(image,x,y,WHITE);

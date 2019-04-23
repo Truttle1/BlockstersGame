@@ -31,6 +31,8 @@ typedef struct PlantSpecies
 	Color stemColor;
 	Color flowerColor;
 	Color highlightColor;
+
+	int evolvePass;
 }PlantSpecies;
 typedef struct MonsterSpecies
 {
@@ -53,6 +55,7 @@ typedef struct MonsterSpecies
 
 	int strength;
 	int resil;
+	int evolvePass;
 
 	Texture2D image;
 	int population;
@@ -62,6 +65,8 @@ typedef struct MonsterSpecies
 	std::string name;
 
 	int agression;
+	bool behaviors[100];
+	bool behaviorsUsed[100];
 }MonsterSpecies;
 
 class Species
