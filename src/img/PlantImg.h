@@ -21,10 +21,13 @@ public:
 	static Texture2D small1;
 	static Texture2D small2;
 	static Texture2D small3;
+	static Texture2D small4;
 
 	static Texture2D medium0;
 	static Texture2D medium1;
 	static Texture2D medium2;
+	static Texture2D medium3;
+	static Texture2D medium4;
 	static void initTextures();
 };
 

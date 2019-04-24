@@ -393,6 +393,14 @@ void Plant::evolve()
 		{
 			newSp.image = PlantImg::medium1;
 		}
+		else if(rand()%5<=2 && newSp.size>=4)
+		{
+			newSp.image = PlantImg::medium3;
+		}
+		else if(rand()%5<=2 && newSp.size>=4)
+		{
+			newSp.image = PlantImg::medium4;
+		}
 		else if(rand()%5<=2 && newSp.size>=3)
 		{
 			newSp.image = PlantImg::medium2;
@@ -412,6 +420,10 @@ void Plant::evolve()
 		else if(rand()%5<=2 && newSp.size>=2)
 		{
 			newSp.image = PlantImg::small3;
+		}
+		else if(rand()%5<=2 && newSp.size>=2)
+		{
+			newSp.image = PlantImg::small4;
 		}
 		else if(rand()%5<=1)
 		{

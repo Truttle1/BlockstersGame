@@ -18,6 +18,10 @@ public:
 	static Texture2D basic2;
 	static Texture2D small0;
 	static Texture2D small1;
+	static Texture2D small2;
+	static Texture2D medium0;
+	static Texture2D medium1;
+	static Texture2D medium2;
 	static Texture2D miniscule0;
 	static Texture2D miniscule1;
 	static Texture2D miniscule2;

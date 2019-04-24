@@ -856,6 +856,22 @@ void Monster::evolve()
 		{
 			newSp.image = MonsterImg::small0;
 		}
+		else if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::small2;
+		}
+		else if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::medium0;
+		}
+		else if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::medium1;
+		}
+		else if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::medium2;
+		}
 		else
 		{
 			newSp.image = MonsterImg::small1;
@@ -871,6 +887,18 @@ void Monster::evolve()
 		else if(rand()%5<=2)
 		{
 			newSp.image = MonsterImg::basic1;
+		}
+		else if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::medium0;
+		}
+		else if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::medium1;
+		}
+		else if(rand()%5<=2)
+		{
+			newSp.image = MonsterImg::medium2;
 		}
 		else
 		{
