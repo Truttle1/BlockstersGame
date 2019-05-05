@@ -18,6 +18,9 @@ class Behaviors
 		static const int TO_PLANTS = 4;
 		static const int TO_MEAT = 5;
 		static const int AWAY_MEAT = 6;
+
+		static const int VIEW_1 = 8;
+		static const int VIEW_2 = 9;
 };
 
 

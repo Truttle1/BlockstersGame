@@ -67,6 +67,8 @@ typedef struct MonsterSpecies
 	int agression;
 	bool behaviors[100];
 	bool behaviorsUsed[100];
+
+	int complexity;
 }MonsterSpecies;
 
 class Species

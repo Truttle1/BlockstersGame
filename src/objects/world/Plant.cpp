@@ -165,13 +165,13 @@ void Plant::nextGeneration()
 		repValue = rand()%26;
 	}
 	//Reproduce
-	if(age>=(Species::plantSpecies[this->species].lifespan/8) && getNeighborhood()<Species::plantSpecies[this->species].maxNew && getNeighborhood()>Species::plantSpecies[this->species].minNew && repValue<17)
+	if(age>=(Species::plantSpecies[this->species].lifespan/8) && getNeighborhood()<Species::plantSpecies[this->species].maxNew && getNeighborhood()>Species::plantSpecies[this->species].minNew && repValue<13)
 	{
 		int newX = ((rand()%5)*8)-16;
 		int newY = ((rand()%5)*8)-16;
 		Plant* p = new Plant(this->getX()+newX,this->getY()+newY,this->getSpecies());
 		GameObject::objects.push_back(p);
-		if(rand()%5000<30 && GameObject::evolutionOccuredYet < 2 && alive && Species::plantSpecies[this->species].evolvePass > 0)
+		if(rand()%6000<30 /*&& GameObject::evolutionOccuredYet < 2*/ && alive && Species::plantSpecies[this->species].evolvePass > 0)
 		{
 			evolve();
 			GameObject::evolutionOccuredYet++;
@@ -278,7 +278,7 @@ void Plant::evolve()
 	int toxicity = Species::plantSpecies[species].toxicity;
 	int groupSize = Species::plantSpecies[species].groupSize;
 	int lifespan = Species::plantSpecies[species].lifespan;
-	Species::plantSpecies[species].evolvePass = -7;
+	Species::plantSpecies[species].evolvePass = -2;
 
 	if(rand()%100<50)
 	{
@@ -320,9 +320,8 @@ void Plant::evolve()
 		lifespan++;
 		toxicity--;
 	}
-	else if(size < 0 && rand()%100<50)
+	else if(size < 0 && rand()%100<70)
 	{
-		size--;
 		toxicity+=2;
 	}
 
@@ -344,6 +343,10 @@ void Plant::evolve()
 		size--;
 	}
 
+	if(nutrients < 1)
+	{
+		nutrients = 1;
+	}
 	if(rand()%100<50)
 	{
 		groupSize+=10;
@@ -380,7 +383,7 @@ void Plant::evolve()
 	newSp.stemColor = Species::plantSpecies[species].stemColor;
 	newSp.flowerColor = Species::plantSpecies[species].flowerColor;
 	newSp.highlightColor = Species::plantSpecies[species].highlightColor;
-	newSp.evolvePass = -6;
+	newSp.evolvePass = 0;
 	bool replacedImage = false;
 	if(true)
 	{
@@ -456,7 +459,7 @@ void Plant::evolve()
 		int h = rand()%ObjectColors::plantColorsHighlight.size();
 		newSp.flowerColor = ObjectColors::plantColorsHighlight[h];
 	}
-	if(replacedImage)
+	if(!replacedImage)
 	{
 		int r = rand()%ObjectColors::plantColorsFlower.size();
 		newSp.flowerColor = ObjectColors::plantColorsFlower[r];
@@ -476,7 +479,7 @@ void Plant::evolve()
 	if(p)
 	{
 		GameObject::objects.push_back(p);
-		int r = rand()%20;
+		int r = rand()%4;
 		for(int i=0; i<(r)+1;i++)
 		{
 			newX = ((rand()%6)*8)-32;

@@ -11,7 +11,8 @@
 #include "../../objects/world/Monster.h"
 #include "../../img/MonsterImg.h"
 typedef UI super;
-MonsterUI::MonsterUI() : super(){
+MonsterUI::MonsterUI() : super()
+{
 	running = false;
 	editing = false;
 	//fontBig = LoadFontEx("src/SGK050.ttf",480,0,0);
@@ -115,7 +116,7 @@ void MonsterUI::init()
 
 	sizeButton = RadioButton(64,286,font);
 	sizeButton.addOption("No Change",0);
-	sizeButton.addOption("+2 Size | -1 Toxicity",1);
+	sizeButton.addOption("+1 Size | -1 Toxicity",1);
 	sizeButton.addOption("+2 Toxicity | -1 Size",1);
 
 	sizeButton2 = RadioButton(64,362,font);
@@ -183,12 +184,12 @@ void MonsterUI::tick()
 			}
 		}
 
-		if(getClicking(leftButtonX,leftButtonY,32,32))
+		if(getClicking(leftButtonX,leftButtonY,32,32) && !viewingBehaviors)
 		{
 			clickLeft();
 			setupBehaveIcons();
 		}
-		if(getClicking(rightButtonX,rightButtonY,32,32))
+		if(getClicking(rightButtonX,rightButtonY,32,32) && !viewingBehaviors)
 		{
 			clickRight();
 			setupBehaveIcons();
@@ -280,8 +281,11 @@ void MonsterUI::render()
 			{
 				drawStats();
 			}
-			DrawTexture(leftButton,leftButtonX,leftButtonY,WHITE);
-			DrawTexture(rightButton,rightButtonX,rightButtonY,WHITE);
+			if(!viewingBehaviors)
+			{
+				DrawTexture(leftButton,leftButtonX,leftButtonY,WHITE);
+				DrawTexture(rightButton,rightButtonX,rightButtonY,WHITE);
+			}
 
 			if(Species::monsterSpecies[curViewing].enemy == false && Species::monsterSpecies[curViewing].population > 0)
 			{
@@ -652,7 +656,7 @@ void MonsterUI::calculateUpdates()
 
 	if(sizeButton.getSelected() == 1)
 	{
-		sizeUpdate += 2;
+		sizeUpdate += 1;
 		toxicityUpdate--;
 
 		currentCost++;
@@ -815,7 +819,7 @@ void MonsterUI::tickEditScreen()
 	{
 		for(int y=0; y<8; y++)
 		{
-			if(getClicking((x*16)+32,(y*16)+32,16,16))
+			if(getClicking((x*16)+32,(y*16)+32,15,15))
 			{
 				if(grid[x][y].a > 100)
 				{
@@ -1119,6 +1123,36 @@ void MonsterUI::initBehaviors()
 	addTexts.push_back("Cost: 5 Pts");
 	meat2.init(LoadTexture("src/img/ui/behaviors/gofrommeat.png"),addTexts);
 	behaviors.push_back(meat2);
+
+	Behavior runPoison = Behavior(32,384,5);
+	addTexts.clear();
+	addTexts.push_back("Your monsters will");
+	addTexts.push_back("move away from");
+	addTexts.push_back("poisoned plants.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 5 Pts");
+	runPoison.init(LoadTexture("src/img/ui/behaviors/runfrompoison.png"),addTexts);
+	behaviors.push_back(runPoison);
+
+	Behavior view1 = Behavior(64,384,1);
+	addTexts.clear();
+	addTexts.push_back("This monster will");
+	addTexts.push_back("reveal more dark");
+	addTexts.push_back("tiles on the map.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 1 Pts");
+	view1.init(LoadTexture("src/img/ui/behaviors/view1.png"),addTexts);
+	behaviors.push_back(view1);
+
+	Behavior view2 = Behavior(80,384,3);
+	addTexts.clear();
+	addTexts.push_back("This monster will");
+	addTexts.push_back("reveal more dark");
+	addTexts.push_back("tiles on the map.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 3 Pts");
+	view2.init(LoadTexture("src/img/ui/behaviors/view2.png"),addTexts);
+	behaviors.push_back(view2);
 }
 
 void MonsterUI::getBehaveAllowed()
@@ -1154,6 +1188,18 @@ void MonsterUI::getBehaveAllowed()
 	else
 	{
 		behaviors[6].disable();
+	}
+	if((editing && speedUpdate > 4) || (!editing && Species::monsterSpecies[curViewing].speed > 4))
+	{
+		behaviors[7].enable();
+	}
+	if((editing && sizeUpdate >= 3) || (!editing && Species::monsterSpecies[curViewing].size >= 3))
+	{
+		behaviors[8].enable();
+	}
+	if(behaviors[8].getStatus() >= 2)
+	{
+		behaviors[9].enable();
 	}
 	for(unsigned int i = 0; i < behaviors.size(); i++)
 	{
@@ -1234,4 +1280,5 @@ void MonsterUI::setupBehaveIcons()
 			behaviors[i].setStatus(0);
 		}
 	}
+	getBehaveAllowed();
 }

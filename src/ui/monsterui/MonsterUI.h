@@ -27,7 +27,6 @@ class MonsterUI : public UI
 		void init();
 		void initEditor(int species);
 	private:
-
 		void tickBehaviors();
 		void initBehaviors();
 		void renderBehaviors();

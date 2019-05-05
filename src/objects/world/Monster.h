@@ -50,7 +50,6 @@ class Monster:public GameObject {
 		void groupingMovement();
 		void plantsMovement();
 		void meatMovement();
-
 		bool hasEaten;
 		int species;
 		bool alive = true;

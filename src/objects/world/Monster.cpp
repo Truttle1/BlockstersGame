@@ -20,7 +20,7 @@ Monster::Monster(int ix, int iy, int sp, bool e) : GameObject(ix,iy,8,8)
 	targetY = -1;
 	movementStage = 0;
 	moved = false;
-	hp = Species::monsterSpecies[species].size*2;
+	hp = Species::monsterSpecies[species].metabolism+Species::monsterSpecies[species].size;
 	monster = Species::monsterSpecies[this->species];
 	hasEaten = false;
 	mouseX = 0;
@@ -28,6 +28,8 @@ Monster::Monster(int ix, int iy, int sp, bool e) : GameObject(ix,iy,8,8)
 	flashTime = 0;
 	clickedHere = false;
 }
+
+//Loads monster data from a file.
 void Monster::loadFromFile(int iAge, int iHp, int population)
 {
 	age = iAge;
@@ -47,6 +49,7 @@ int Monster::getPopulation()
 {
 	return arbitraryPopNumber;
 }
+
 void Monster::tick()
 {
 	getClicking();
@@ -162,21 +165,41 @@ void Monster::tick()
 		}
 		if(!moved && targetX != -1 && targetY != -1)
 		{
+			int normX = (x/16)*16;
+			int normY = (y/16)*16;
+			int normTX = (targetX/16)*16;
+			int normTY = (targetY/16)*16;
+
+			if(!isMoving() && !GameObject::fog[normX][normY].isVisible() && !GameObject::fog[normTX][normTY].isVisible())
+			{
+				x = targetX;
+				y = targetY;
+			}
+
+			int movement = 1;
+			if(monster.speed > 3)
+			{
+				movement = 2;
+			}
+			if(monster.speed > 7)
+			{
+				movement = 4;
+			}
 			if(x < targetX)
 			{
-				x++;
+				x+=movement;
 			}
 			else if(x > targetX)
 			{
-				x--;
+				x-=movement;
 			}
 			else if(y < targetY)
 			{
-				y++;
+				y+=movement;
 			}
 			else if(y > targetY)
 			{
-				y--;
+				y-=movement;
 			}
 			else if(x == targetX && y == targetY)
 			{
@@ -351,17 +374,31 @@ void Monster::nextGeneration()
 	}
 
 
-	int repValue = 0;
+	int repValue = rand()%40;
+	int gn = getNeighborhood();
 	//Reproduce
-	if(hp >= monster.size && age >= 2 && getNeighborhood()<=monster.maxNew && getNeighborhood()>=monster.minNew && repValue<20)
+	if(hp >= monster.size && age >= 2 && gn<=monster.maxNew && gn>=monster.minNew && repValue<30)
 	{
 		int newX = ((rand()%5)*8)-16;
 		int newY = ((rand()%5)*8)-16;
 		Monster* p = new Monster(this->getX()+newX,this->getY()+newY,this->getSpecies(),enemy);
 		GameObject::objects.push_back(p);
 		GameObject::monsters.push_back(p);
+		Monster* p1 = new Monster(this->getX()+newX+8,this->getY()+newY+8,this->getSpecies(),enemy);
+		GameObject::objects.push_back(p1);
+		GameObject::monsters.push_back(p1);
 		hp -= monster.size/2;
-		if(rand()%2000<70 && monster.enemy && alive && !evolutionOccuredYetMonst)
+		if(monster.size == 1)
+		{
+			hp -= 1;
+		}
+		int randNum = 0;
+		randNum = 400/(monster.complexity+1);
+		if(randNum < 100)
+		{
+			randNum = 100;
+		}
+		if(rand()%6000<randNum && monster.enemy && alive /*&& !evolutionOccuredYetMonst*/)
 		{
 			evolve();
 			evolutionOccuredYetMonst = true;
@@ -459,6 +496,14 @@ void Monster::nextMove()
 	if(!moved && movementStage < Species::monsterSpecies[species].speed)
 	{
 		int spd = 1;
+		if(monster.speed > 3)
+		{
+			spd = 2;
+		}
+		if(monster.speed > 7)
+		{
+			spd = 4;
+		}
 
 		int amountOfOptions = 1;
 		if(monster.behaviors[Behaviors::RUN_MONSTERS] || monster.behaviors[Behaviors::TO_MONSTERS])
@@ -479,23 +524,23 @@ void Monster::nextMove()
 		}
 		if(targetX == -1 && targetY == -1)
 		{
-			if(((!monster.carnivore && hp < monster.size+(2*monster.metabolism)) || rand()%amountOfOptions<=3) && monster.behaviors[Behaviors::TO_PLANTS])
+			if(targetX == -1 && ((!monster.carnivore && hp < monster.size+(2*monster.metabolism)) || rand()%amountOfOptions<=3) && monster.behaviors[Behaviors::TO_PLANTS])
 			{
 				plantsMovement();
 			}
-			else if(((monster.carnivore && hp< monster.size+(2*monster.metabolism)) || rand()%amountOfOptions<=3) && monster.behaviors[Behaviors::TO_MEAT])
+			if(targetX == -1 && ((monster.carnivore && hp< monster.size+(2*monster.metabolism)) || rand()%amountOfOptions<=3) && monster.behaviors[Behaviors::TO_MEAT])
 			{
 				meatMovement();
 			}
-			else if(rand()%amountOfOptions<=2 && (monster.behaviors[2] || monster.behaviors[3]))
+			if(targetX == -1 && rand()%amountOfOptions<=2 && (monster.behaviors[2] || monster.behaviors[3]))
 			{
 				groupingMovement();
 			}
-			else if(monster.behaviors[0] || monster.behaviors[1])
+			if(targetX == -1 && (monster.behaviors[0] || monster.behaviors[1]))
 			{
 				closeFarMovement();
 			}
-			else
+			if(targetX == -1)
 			{
 				selectRandomTarget();
 			}
@@ -504,33 +549,10 @@ void Monster::nextMove()
 		{
 			removeFog();
 		}
-
-		if(enemy)
-		{
-			spd = ((monster.speed/2)/4)*4;
-			if(spd < 1)
-			{
-				spd = 1;
-			}
-			if(spd > 8)
-			{
-				spd = 8;
-			}
-		}
 		Camera2D* cam = GameWindow::getCamera();
 
 		int a = -GameWindow::getCamera()->offset.x / GameWindow::getCamera()->zoom;
 		int b = -GameWindow::getCamera()->offset.y / GameWindow::getCamera()->zoom;
-		if(x < a || x > a + GameWindow::getCamera()->zoom*480)
-		{
-			targetX = x;
-			targetY = y;
-		}
-		else if(y < b || y > b + GameWindow::getCamera()->zoom*480)
-		{
-			targetX = x;
-			targetY = y;
-		}
 		if(targetX > x)
 		{
 			x+=spd;
@@ -546,6 +568,16 @@ void Monster::nextMove()
 		else if(targetY < y)
 		{
 			y-=spd;
+		}
+		if(x < a || x > a + GameWindow::getCamera()->zoom*480)
+		{
+			x = targetX;
+			y = targetY;
+		}
+		else if(y < b || y > b + GameWindow::getCamera()->zoom*480)
+		{
+			x = targetX;
+			y = targetY;
 		}
 		if(x == targetX && y == targetY)
 		{
@@ -610,6 +642,20 @@ void Monster::removeFog()
 	int normX = x/16;
 	int normY = y/16;
 	GameObject::fog[normX][normY].disable();
+	if(monster.behaviors[Behaviors::VIEW_1])
+	{
+		GameObject::fog[normX-1][normY].disable();
+		GameObject::fog[normX+1][normY].disable();
+		GameObject::fog[normX][normY+1].disable();
+		GameObject::fog[normX][normY-1].disable();
+	}
+	if(monster.behaviors[Behaviors::VIEW_2])
+	{
+		GameObject::fog[normX-1][normY-1].disable();
+		GameObject::fog[normX-1][normY+1].disable();
+		GameObject::fog[normX+1][normY-1].disable();
+		GameObject::fog[normX+1][normY+1].disable();
+	}
 }
 bool Monster::isMoving()
 {
@@ -668,7 +714,7 @@ void Monster::evolve()
 	int agression = monster.agression;
 	bool carnivore = monster.carnivore;
 
-	if(rand()%100<30)
+	if(rand()%100<20)
 	{
 		carnivore = !carnivore;
 	}
@@ -685,13 +731,13 @@ void Monster::evolve()
 		maxNew--;
 		lifespan+=2;
 	}
-	if(rand()%100<40)
+	if(rand()%100<20)
 	{
 		minDeath--;
 		maxDeath++;
 		lifespan--;
 	}
-	else if(maxDeath-minDeath > 1 && rand()%100<40)
+	else if(maxDeath-minDeath > 1 && rand()%100<20)
 	{
 		minDeath++;
 		maxDeath--;
@@ -703,7 +749,7 @@ void Monster::evolve()
 		toxicity+=2;
 		lifespan--;
 	}
-	else if(toxicity > 0 && rand()%100<40)
+	else if(toxicity > 0 && rand()%100<50)
 	{
 		toxicity--;
 		lifespan+=2;
@@ -727,7 +773,7 @@ void Monster::evolve()
 	if(rand()%100<40)
 	{
 		metabolism++;
-		speed += 2;
+		speed += 1;
 	}
 	else if(rand()%100<40)
 	{
@@ -774,17 +820,13 @@ void Monster::evolve()
 	{
 		resil = 1;
 	}
-	if(rand()%100<70)
+	if(rand()%100<50)
 	{
 		agression++;
 	}
-	else if(rand()%100<40)
+	else if(rand()%100<50)
 	{
 		agression--;
-	}
-	if(carnivore && agression < 7)
-	{
-		agression = 7;
 	}
 	if(agression < 0)
 	{
@@ -802,7 +844,7 @@ void Monster::evolve()
 	{
 		groupSize-=10;
 	}
-	if(rand()%100<35)
+	if(rand()%100<75)
 	{
 		size++;
 	}
@@ -823,6 +865,8 @@ void Monster::evolve()
 	newSp.metabolism = metabolism;
 	newSp.agression = agression;
 	newSp.carnivore = carnivore;
+
+	newSp.complexity = monster.complexity+1;
 
 
 	newSp.image = monster.image;
@@ -860,18 +904,6 @@ void Monster::evolve()
 		{
 			newSp.image = MonsterImg::small2;
 		}
-		else if(rand()%5<=2)
-		{
-			newSp.image = MonsterImg::medium0;
-		}
-		else if(rand()%5<=2)
-		{
-			newSp.image = MonsterImg::medium1;
-		}
-		else if(rand()%5<=2)
-		{
-			newSp.image = MonsterImg::medium2;
-		}
 		else
 		{
 			newSp.image = MonsterImg::small1;
@@ -905,6 +937,59 @@ void Monster::evolve()
 			newSp.image = MonsterImg::basic2;
 		}
 	}
+
+	if(GameObject::generation > -1)
+	{
+		if(!monster.behaviors[0] && !monster.behaviors[1])
+		{
+			if(rand()%100 < 40)
+			{
+				newSp.behaviors[0] = true;
+			}
+			else if(rand()%100 < 40)
+			{
+				newSp.behaviors[1] = true;
+			}
+		}
+		if(!monster.behaviors[2] && !monster.behaviors[3])
+		{
+			if(rand()%100 < 40)
+			{
+				newSp.behaviors[2] = true;
+			}
+			else if(rand()%100 < 40)
+			{
+				newSp.behaviors[3] = true;
+			}
+		}
+		if(monster.behaviors[0] || monster.behaviors[1])
+		{
+			if(!monster.behaviors[4] && !monster.behaviors[5])
+			{
+				if(rand()%100 < 40)
+				{
+					newSp.behaviors[4] = true;
+				}
+				else if(rand()%100 < 40)
+				{
+					newSp.behaviors[5] = true;
+				}
+			}
+		}
+		if(monster.behaviors[4])
+		{
+			if(!monster.behaviors[6])
+			{
+				newSp.behaviors[6] = true;
+			}
+		}
+		if(newSp.carnivore && rand()%100<75)
+		{
+			newSp.behaviors[5] = true;
+		}
+	}
+
+
 	if(rand()%100<20)
 	{
 		int r = rand()%ObjectColors::monsterColorsEyes.size();
@@ -938,7 +1023,7 @@ void Monster::evolve()
 	Monster* p = new Monster(this->getX()+newX,this->getY()+newY,Species::monsterSpecies.size()-1,true);
 	GameObject::objects.push_back(p);
 	GameObject::monsters.push_back(p);
-	int r = rand()%5;
+	int r = rand()%2;
 	for(int i=0; i<(r)+1;i++)
 	{
 		newX = ((rand()%6)*8)-32;
@@ -949,6 +1034,12 @@ void Monster::evolve()
 		GameObject::monsters.push_back(p);
 		GameObject::objects.push_back(p1);
 		GameObject::monsters.push_back(p1);
+		Monster* p2 = new Monster(this->getX()+newX+8,this->getY()+newY,Species::monsterSpecies.size()-1,true);
+		Monster* p3 = new Monster(this->getX()+newX+8,this->getY()+newY+8,Species::monsterSpecies.size()-1,true);
+		GameObject::objects.push_back(p2);
+		GameObject::monsters.push_back(p2);
+		GameObject::objects.push_back(p3);
+		GameObject::monsters.push_back(p3);
 	}
 }
 void Monster::attackMonsters()
@@ -962,6 +1053,10 @@ void Monster::attackMonsters()
 			{
 				bool ok = true;
 				m = static_cast<Monster*>(GameObject::monsters[i]);
+				if(m == this)
+				{
+					ok = false;
+				}
 				if(m->getSpecies() == species)
 				{
 					ok = false;
@@ -1098,6 +1193,13 @@ void Monster::closeFarMovement()
 			{
 				break;
 			}
+			/*
+			if(std::abs(distanceToFrom(closestMonster->getX(),closestMonster->getY(),x,y)) > 64)
+			{
+				targetX = -1;
+				targetY = -1;
+				return;
+			}*/
 			targetX = -1;
 			targetY = -1;
 			selectRandomTarget();
@@ -1134,6 +1236,13 @@ void Monster::closeFarMovement()
 			{
 				break;
 			}
+			/*
+			if(std::abs(distanceToFrom(closestMonster->getX(),closestMonster->getY(),x,y)) > 64)
+			{
+				targetX = -1;
+				targetY = -1;
+				return;
+			}*/
 			targetX = -1;
 			targetY = -1;
 			selectRandomTarget();

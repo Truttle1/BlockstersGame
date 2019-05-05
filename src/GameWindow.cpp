@@ -44,6 +44,7 @@ void GameWindow::init(Camera2D* cam)
 
 	InitWindow(GameWindow::WINDOW_WIDTH,GameWindow::WINDOW_HEIGHT,"Blocksters - A Truttle1 Game");
 
+	SetTargetFPS(60);
 	PlantImg::initTextures();
 	MonsterImg::initTextures();
 	ObjectColors::initColors();
@@ -540,9 +541,19 @@ void GameWindow::gameDrawGUI()
 			{
 				DrawTexture(moveButton,NEXT_GEN_X,NEXT_GEN_Y,WHITE);
 			}
+			else if(generationing)
+			{
+				DrawRectangle(NEXT_GEN_X,NEXT_GEN_Y,128,32,{0,128,128,255});
+				DrawTextEx(GameObject::font,"Processing...",{static_cast<float>(NEXT_GEN_X+8),static_cast<float>(NEXT_GEN_Y+8)},16,0.0f,WHITE);
+			}
 			else if(!moving)
 			{
 				DrawTexture(nextGenButton,NEXT_GEN_X,NEXT_GEN_Y,WHITE);
+			}
+			else
+			{
+				DrawRectangle(NEXT_GEN_X,NEXT_GEN_Y,128,32,{0,128,128,255});
+				DrawTextEx(GameObject::font,"Moving Monsters...",{static_cast<float>(NEXT_GEN_X+8),static_cast<float>(NEXT_GEN_Y+8)},16,0.0f,WHITE);
 			}
 		}
 		else
@@ -665,6 +676,7 @@ void GameWindow::doGeneration()
 				delete(GameObject::objects[i]);
 				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
+				i--;
 			}
 		}
 		if(temp->getName() == "Monster")
@@ -684,6 +696,7 @@ void GameWindow::doGeneration()
 				delete(GameObject::objects[i]);
 				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
+				i--;
 			}
 		}
 	}
@@ -737,22 +750,24 @@ void GameWindow::doGeneration()
 				{
 					Monster* m = new Monster(rx+48,ry,enemyNum,true);
 					Monster* m1 = new Monster(rx+48,ry+8,enemyNum,true);
-					Monster* m2 = new Monster(rx+8,ry+48,enemyNum,true);
-					Monster* m3 = new Monster(rx+8,ry+48,enemyNum,true);
+					//Monster* m2 = new Monster(rx+8,ry+48,enemyNum,true);
+					//Monster* m3 = new Monster(rx+8,ry+48,enemyNum,true);
 					GameObject::objects.push_back(m);
 					GameObject::objects.push_back(m1);
-					GameObject::objects.push_back(m2);
-					GameObject::objects.push_back(m3);
+					//GameObject::objects.push_back(m2);
+					//GameObject::objects.push_back(m3);
 
 					GameObject::monsters.push_back(m);
 					GameObject::monsters.push_back(m1);
-					GameObject::monsters.push_back(m2);
-					GameObject::monsters.push_back(m3);
+					//GameObject::monsters.push_back(m2);
+					//GameObject::monsters.push_back(m3);
 				}
 				Monster* m = new Monster(rx,ry,c,Species::monsterSpecies[c].enemy);
 				Monster* m1 = new Monster(rx,ry+8,c,Species::monsterSpecies[c].enemy);
+				/*
 				Monster* m2 = new Monster(rx+8,ry+8,c,Species::monsterSpecies[c].enemy);
 				Monster* m3 = new Monster(rx+8,ry,c,Species::monsterSpecies[c].enemy);
+				*/
 				if(!Species::monsterSpecies[c].enemy)
 				{
 					camera->zoom = 4.0f;
@@ -761,17 +776,14 @@ void GameWindow::doGeneration()
 				}
 				GameObject::objects.push_back(m);
 				GameObject::objects.push_back(m1);
-				GameObject::objects.push_back(m2);
-				GameObject::objects.push_back(m3);
 
 				GameObject::monsters.push_back(m);
 				GameObject::monsters.push_back(m1);
-				GameObject::monsters.push_back(m2);
-				GameObject::monsters.push_back(m3);
 			}
 		}
 	}
 	GameObject::generation++;
+	generationing = false;
 	genPhase = MOVE_PHASE;
 	//GameObject::objects.shrink_to_fit();
 }
@@ -809,6 +821,7 @@ void GameWindow::doMove()
 }
 void GameWindow::runUI()
 {
+	//if(GameObject::generation > -1)
 	if(clickUI(NEXT_GEN_X,NEXT_GEN_Y,128,32) && !UI::isOpen())
 	{
 		if(genPhase == MOVE_PHASE)
@@ -826,6 +839,8 @@ void GameWindow::runUI()
 		}
 		else if(!moving)
 		{
+			generationing = true;
+			render();
 			doGeneration();
 		}
 	}
@@ -967,6 +982,7 @@ void GameWindow::generateMonsters(bool enemy)
 		sp.image = Species::replaceColorsToImage(&sp.image,ObjectColors::CYAN_BLUE,sp.highlightColor);
 		sp.name = Species::generateName();
 		sp.enemy = false;
+		sp.complexity = 0;
 		for(int i=0; i<100; i++)
 		{
 			sp.behaviors[i] = false;
@@ -983,7 +999,7 @@ void GameWindow::generateMonsters(bool enemy)
 			sp.maxNew = 4;
 			sp.size = 1;
 			sp.toxicity = 0;
-			sp.speed = 3;
+			sp.speed = 1;
 			sp.strength = 1;
 			sp.population = 0;
 			sp.groupSize = 10;
@@ -991,7 +1007,7 @@ void GameWindow::generateMonsters(bool enemy)
 			sp.resil = 1;
 			sp.carnivore = false;
 			sp.enemy = true;
-			sp.agression = 4;
+			sp.agression = 2;
 
 			if(rand()%10<5)
 			{

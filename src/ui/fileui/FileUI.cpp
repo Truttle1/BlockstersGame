@@ -344,6 +344,7 @@ bool FileUI::load(std::string filename)
 			ms.image = MonsterImg::basic0;
 			printf("carn\n");
 			ms.carnivore = stoi(result[19]);
+			ms.complexity = stoi(result[20]);
 			Species::monsterSpecies.push_back(ms);
 		}
 		if(result[0].find("GROUND") != string::npos)
@@ -637,6 +638,8 @@ void FileUI::save(std::string filename)
 			file << to_string(Species::monsterSpecies[i].enemy);
 			file << ",";
 			file << to_string(Species::monsterSpecies[i].carnivore);
+			file << ",";
+			file << to_string(Species::monsterSpecies[i].complexity);
 			file << "\n";
 
 			file << "M_COLOR0";

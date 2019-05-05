@@ -139,6 +139,7 @@ private:
 	static MessageBox messageBox;
 	void tutorialMessages();
 	void getPointIncrease();
+	bool generationing = false;
 
 
 };
