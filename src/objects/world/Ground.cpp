@@ -11,19 +11,19 @@ const int LENGTH_OF_CREATE = 18;
 Ground::Ground(int ix, int iy,int w, int h, bool newGame) : super(ix,iy,w,h)
 {
 	name = "Ground";
-	if(rand()%300 < 1)
+	if(rand()%250 < 1)
 	{
 		this->biome = DIRT;
 	}
-	else if(rand()%200 < 1)
+	else if(rand()%150 < 1)
 	{
 		this->biome = WATER;
 	}
-	else if(rand()%250 < 1)
+	else if(rand()%200 < 1)
 	{
 		this->biome = DESERT;
 	}
-	else if(rand()%300 < 1)
+	else if(rand()%250 < 1)
 	{
 		this->biome = MOUNTAIN;
 	}
@@ -309,7 +309,7 @@ void Ground::nextGeneration()
 	{
 		for(unsigned int i=0; i<10;i++)
 		{
-			if(rand()%100<5)
+			if(rand()%100<4)
 			{
 
 				Plant* p = new Plant(x,y,i);

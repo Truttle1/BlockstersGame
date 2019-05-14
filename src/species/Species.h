@@ -31,6 +31,7 @@ typedef struct PlantSpecies
 	Color stemColor;
 	Color flowerColor;
 	Color highlightColor;
+	Color pixels[64];
 
 	int evolvePass;
 }PlantSpecies;
@@ -69,6 +70,7 @@ typedef struct MonsterSpecies
 	bool behaviorsUsed[100];
 
 	int complexity;
+	Color pixels[64];
 }MonsterSpecies;
 
 class Species

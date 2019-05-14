@@ -45,6 +45,8 @@ Plant::Plant(int ix, int iy, int sp) : GameObject(ix,iy,8,8)
 		this->kill();
 		//printf("WATER IS BAD\nSPECIES %d HAS LAND VALUE OF %d\n",this->species,Species::plantSpecies[this->species].land);
 	}
+	//Plants at the same location die.
+	killSameLocation();
 	curBiome = getBiome();
 }
 Plant::~Plant()
@@ -106,25 +108,28 @@ void Plant::render()
 void Plant::nextGeneration()
 {
 	color = GREEN;
+	int gn = getNeighborhood();
 	if(hp <= 0)
 	{
 		kill();
 	}
 
-	//Plants at the same location die.
-	killSameLocation();
+	if(x > 960 || y < 0 || x < 0 || x > 960)
+	{
+		kill();
+	}
 	//Plants die when they live longer than their lifespan.
 	if(age>Species::plantSpecies[this->species].lifespan)
 	{
 		this->kill();
 	}
 	//Death by overcrowding
-	if(getNeighborhood()>Species::plantSpecies[this->species].maxDeath && rand()%100<75)
+	if(gn>Species::plantSpecies[this->species].maxDeath && rand()%100<75)
 	{
 		this->kill();
 	}
 	//Death by lonliness
-	if(getNeighborhood()<Species::plantSpecies[this->species].minDeath && rand()%100<33)
+	if(gn<Species::plantSpecies[this->species].minDeath && rand()%100<50)
 	{
 		this->kill();
 	}
@@ -165,16 +170,22 @@ void Plant::nextGeneration()
 		repValue = rand()%26;
 	}
 	//Reproduce
-	if(age>=(Species::plantSpecies[this->species].lifespan/8) && getNeighborhood()<Species::plantSpecies[this->species].maxNew && getNeighborhood()>Species::plantSpecies[this->species].minNew && repValue<13)
+	if(age>=(Species::plantSpecies[this->species].lifespan/8) && gn<Species::plantSpecies[this->species].maxNew && gn>Species::plantSpecies[this->species].minNew)
 	{
-		int newX = ((rand()%5)*8)-16;
-		int newY = ((rand()%5)*8)-16;
-		Plant* p = new Plant(this->getX()+newX,this->getY()+newY,this->getSpecies());
-		GameObject::objects.push_back(p);
-		if(rand()%6000<30 /*&& GameObject::evolutionOccuredYet < 2*/ && alive && Species::plantSpecies[this->species].evolvePass > 0)
+		if( repValue<13 || (generation<0 && repValue < 15))
 		{
-			evolve();
-			GameObject::evolutionOccuredYet++;
+			int newX = ((rand()%5)*8)-16;
+			int newY = ((rand()%5)*8)-16;
+			Plant* p = new Plant(this->getX()+newX,this->getY()+newY,this->getSpecies());
+			GameObject::objects.push_back(p);
+			if(((generation>0 && rand()%2500<40) ||rand()%9500<40) && (GameObject::evolutionOccuredYet < 1 || generation < 1) && alive && Species::plantSpecies[this->species].evolvePass > 0)
+			{
+				evolve();
+				if(generation > 15)
+				{
+					GameObject::evolutionOccuredYet++;
+				}
+			}
 		}
 	}
 	if(x<0 || x>=960)
@@ -278,7 +289,7 @@ void Plant::evolve()
 	int toxicity = Species::plantSpecies[species].toxicity;
 	int groupSize = Species::plantSpecies[species].groupSize;
 	int lifespan = Species::plantSpecies[species].lifespan;
-	Species::plantSpecies[species].evolvePass = -2;
+	Species::plantSpecies[species].evolvePass = 0;
 
 	if(rand()%100<50)
 	{
@@ -324,24 +335,7 @@ void Plant::evolve()
 	{
 		toxicity+=2;
 	}
-
-	if(rand()%100<50)
-	{
-		nutrients++;
-	}
-	if(rand()%100<50)
-	{
-		nutrients--;
-	}
-
-	if(rand()%100<50)
-	{
-		size++;
-	}
-	if(rand()%100<50)
-	{
-		size--;
-	}
+	nutrients++;
 
 	if(nutrients < 1)
 	{

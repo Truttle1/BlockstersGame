@@ -151,6 +151,7 @@ void GameWindow::tick()
 	else if(gameMode == GAME_SCREEN)
 	{
 		gameTick();
+		cout << GameObject::objects.size() << endl;
 	}
 }
 
@@ -491,7 +492,7 @@ void GameWindow::gameRender()
 	for(uint i=0; i<GameObject::objects.size();i++)
 	{
 		GameObject* obj = GameObject::objects[i];
-		if(obj)
+		if(obj != NULL)
 		{
 			if(obj->getName() == "EyeCandy" || obj->getName() == "Meat")
 			{
@@ -736,7 +737,7 @@ void GameWindow::doGeneration()
 							}
 						}
 					}
-					if (foundLand && Species::monsterSpecies[c].land && foundPlant>4)
+					if (foundLand && Species::monsterSpecies[c].land && foundPlant>10)
 					{
 						created = true;
 					}

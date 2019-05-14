@@ -55,7 +55,7 @@ typedef unsigned int uint;
 			int stretchSize = 1;
 		protected:
 			static int evolutionOccuredYet;
-			static bool evolutionOccuredYetMonst;
+			static int evolutionOccuredYetMonst;
 			int x = 0;
 			int y = 0;
 			int width = 0;

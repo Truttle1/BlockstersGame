@@ -17,7 +17,7 @@ int GameObject::generation = -15;
 int GameObject::worldMouseX = 0;
 int GameObject::worldMouseY = 0;
 int GameObject::evolutionOccuredYet = false;
-bool GameObject::evolutionOccuredYetMonst = false;
+int GameObject::evolutionOccuredYetMonst = 0;
 Font GameObject::font;
 
 	GameObject::GameObject(int ix, int iy,int w, int h)

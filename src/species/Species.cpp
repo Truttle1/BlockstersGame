@@ -120,6 +120,5 @@ Texture Species::replaceColorsToImage(Texture* image, Color c1, Color c2)
 	{
 		std::cout << "ERRORED IMAGE!!!" << std::endl;
 	}
-
 	return ret;
 }

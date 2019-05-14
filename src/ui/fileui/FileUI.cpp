@@ -378,26 +378,37 @@ bool FileUI::load(std::string filename)
 		{
 			int species = stoi(result[1].c_str());
 			int pixel = stoi(result[2].c_str());
+			//Color* pixels = (Color*)(GetImageData(GetTextureData(tex)));
+			Species::plantSpecies[species].pixels[pixel].r = stoi(result[3]);
+			Species::plantSpecies[species].pixels[pixel].g = stoi(result[4]);
+			Species::plantSpecies[species].pixels[pixel].b = stoi(result[5]);
+			Species::plantSpecies[species].pixels[pixel].a = stoi(result[6]);
+		}
+		if(result[0].find("END_P_PXL") != string::npos)
+		{
+			int species = stoi(result[1].c_str());
 			Texture tex = LoadTextureFromImage(GetTextureData(Species::plantSpecies[species].image));
-			Color* pixels = (Color*)(GetImageData(GetTextureData(tex)));
-			pixels[pixel].r = stoi(result[3]);
-			pixels[pixel].g = stoi(result[4]);
-			pixels[pixel].b = stoi(result[5]);
-			pixels[pixel].a = stoi(result[6]);
-			UpdateTexture(tex,pixels);
+			UpdateTexture(tex,(Species::plantSpecies[species].pixels));
 			Species::plantSpecies[species].image = tex;
 		}
 		if(result[0].find("M_PIXEL") != string::npos)
 		{
 			int species = stoi(result[1].c_str());
 			int pixel = stoi(result[2].c_str());
+			//Texture tex = LoadTextureFromImage(GetTextureData(Species::monsterSpecies[species].image));
+			//Color* pixels = (Color*)(GetImageData(GetTextureData(tex)));
+			Species::monsterSpecies[species].pixels[pixel].r = stoi(result[3]);
+			Species::monsterSpecies[species].pixels[pixel].g = stoi(result[4]);
+			Species::monsterSpecies[species].pixels[pixel].b = stoi(result[5]);
+			Species::monsterSpecies[species].pixels[pixel].a = stoi(result[6]);
+			//UpdateTexture(tex,pixels);
+			//Species::monsterSpecies[species].image = tex;
+		}
+		if(result[0].find("END_M_PXL") != string::npos)
+		{
+			int species = stoi(result[1].c_str());
 			Texture tex = LoadTextureFromImage(GetTextureData(Species::monsterSpecies[species].image));
-			Color* pixels = (Color*)(GetImageData(GetTextureData(tex)));
-			pixels[pixel].r = stoi(result[3]);
-			pixels[pixel].g = stoi(result[4]);
-			pixels[pixel].b = stoi(result[5]);
-			pixels[pixel].a = stoi(result[6]);
-			UpdateTexture(tex,pixels);
+			UpdateTexture(tex,(Species::monsterSpecies[species].pixels));
 			Species::monsterSpecies[species].image = tex;
 		}
 		if(result[0].find("P_COLOR0") != string::npos)
@@ -489,6 +500,7 @@ bool FileUI::load(std::string filename)
 void FileUI::save(std::string filename)
 {
 	std::ofstream file;
+	GameWindow::setFileName(fileName.getText());
 	file.open(filename);
 	{
 		file << "NAME,";
@@ -587,6 +599,9 @@ void FileUI::save(std::string filename)
 				file << to_string(c.a);
 				file << "\n";
 			}
+			file << "END_P_PXL,";
+			file << to_string(i);
+			file << "\n";
 
 		}
 		for(unsigned int i = 0; i < 100; i++)
@@ -706,6 +721,9 @@ void FileUI::save(std::string filename)
 				file << to_string(c.a);
 				file << "\n";
 			}
+			file << "END_M_PXL,";
+			file << to_string(i);
+			file << "\n";
 		}
 		for(unsigned int x = 0; x < 60; x++)
 		{

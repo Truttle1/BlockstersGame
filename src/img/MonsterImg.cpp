@@ -13,6 +13,8 @@ Texture2D MonsterImg::basic2;
 Texture2D MonsterImg::small0;
 Texture2D MonsterImg::small1;
 Texture2D MonsterImg::small2;
+Texture2D MonsterImg::small3;
+Texture2D MonsterImg::small4;
 Texture2D MonsterImg::medium0;
 Texture2D MonsterImg::medium1;
 Texture2D MonsterImg::medium2;
@@ -40,6 +42,8 @@ void MonsterImg::initTextures()
 	small0 = LoadTexture("src/img/monsters/small0.png");
 	small1 = LoadTexture("src/img/monsters/small1.png");
 	small2 = LoadTexture("src/img/monsters/small2.png");
+	small3 = LoadTexture("src/img/monsters/small3.png");
+	small4 = LoadTexture("src/img/monsters/small4.png");
 	medium0 = LoadTexture("src/img/monsters/medium0.png");
 	medium1 = LoadTexture("src/img/monsters/medium1.png");
 	medium2 = LoadTexture("src/img/monsters/medium2.png");

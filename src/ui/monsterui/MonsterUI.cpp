@@ -518,6 +518,7 @@ void MonsterUI::saveMonster()
 	bool carnivore = monster.carnivore;
 
 	MonsterSpecies newSp = MonsterSpecies();
+	newSp.complexity = monster.complexity + 1;
 	newSp.land = monster.land;
 	newSp.toxicity = toxicityUpdate;
 	newSp.size = sizeUpdate;
@@ -594,6 +595,8 @@ void MonsterUI::saveMonster()
 	editing = false;
 	curViewing = Species::monsterSpecies.size()-1;
 	index = Species::monstersDiscovered.size()-1;
+
+
 }
 
 void MonsterUI::calculateUpdates()
@@ -1153,6 +1156,83 @@ void MonsterUI::initBehaviors()
 	addTexts.push_back("Cost: 3 Pts");
 	view2.init(LoadTexture("src/img/ui/behaviors/view2.png"),addTexts);
 	behaviors.push_back(view2);
+
+	Behavior swim1 = Behavior(128,384,3);
+	addTexts.clear();
+	if(Species::monsterSpecies[0].land)
+	{
+		addTexts.push_back("This monster will");
+		addTexts.push_back("be able to swim.");
+		addTexts.push_back("");
+	}
+	else
+	{
+		addTexts.push_back("This monster will");
+		addTexts.push_back("be able to walk on");
+		addTexts.push_back("land.");
+	}
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 3 Pts");
+	swim1.init(LoadTexture("src/img/ui/behaviors/swim1.png"),addTexts);
+	behaviors.push_back(swim1);
+
+	Behavior swim2 = Behavior(144,384,4);
+	addTexts.clear();
+	if(Species::monsterSpecies[0].land)
+	{
+		addTexts.push_back("This monster will");
+		addTexts.push_back("be able to swim.");
+		addTexts.push_back("");
+	}
+	else
+	{
+		addTexts.push_back("This monster will");
+		addTexts.push_back("be able to walk on");
+		addTexts.push_back("land.");
+	}
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 4 Pts");
+	swim2.init(LoadTexture("src/img/ui/behaviors/swim2.png"),addTexts);
+	behaviors.push_back(swim2);
+
+	Behavior weapons1 = Behavior(128,304,3);
+	addTexts.clear();
+	addTexts.push_back("This monster will");
+	addTexts.push_back("be able to defeat");
+	addTexts.push_back("opponents by just");
+	addTexts.push_back("touching them.");
+	addTexts.push_back("Cost: 3 Pts");
+	weapons1.init(LoadTexture("src/img/ui/behaviors/weapons1.png"),addTexts);
+	behaviors.push_back(weapons1);
+
+	Behavior weapons2 = Behavior(144,304,6);
+	addTexts.clear();
+	addTexts.push_back("This monster will");
+	addTexts.push_back("be able to destroy");
+	addTexts.push_back("shelters by just");
+	addTexts.push_back("touching them.");
+	addTexts.push_back("Cost: 6 Pts");
+	weapons2.init(LoadTexture("src/img/ui/behaviors/weapons2.png"),addTexts);
+	behaviors.push_back(weapons2);
+
+	Behavior shelters1 = Behavior(128,336,7);
+	addTexts.clear();
+	addTexts.push_back("This monster will");
+	addTexts.push_back("be able to build");
+	addTexts.push_back("simple shelters.");
+	addTexts.push_back("Cost: 7 Pts");
+	shelters1.init(LoadTexture("src/img/ui/behaviors/shelters1.png"),addTexts);
+	behaviors.push_back(shelters1);
+
+	Behavior shelters2 = Behavior(144,336,12);
+	addTexts.clear();
+	addTexts.push_back("This monster will");
+	addTexts.push_back("be able to build");
+	addTexts.push_back("more complex");
+	addTexts.push_back("shelters.");
+	addTexts.push_back("Cost: 12 Pts");
+	shelters2.init(LoadTexture("src/img/ui/behaviors/shelters2.png"),addTexts);
+	behaviors.push_back(shelters2);
 }
 
 void MonsterUI::getBehaveAllowed()
@@ -1200,6 +1280,35 @@ void MonsterUI::getBehaveAllowed()
 	if(behaviors[8].getStatus() >= 2)
 	{
 		behaviors[9].enable();
+	}
+
+	if(Species::monsterSpecies[curViewing].complexity >= 3)
+	{
+		if(Species::monsterSpecies[curViewing].strength > 4)
+		{
+			behaviors[Behaviors::WEAPON_1].enable();
+		}
+		if(Species::monsterSpecies[curViewing].resil > 7)
+		{
+			behaviors[Behaviors::SHELTER_1].enable();
+		}
+	}
+
+
+	if(behaviors[Behaviors::SHELTER_1].getStatus() >= 2 && Species::monsterSpecies[curViewing].complexity >= 9)
+	{
+		behaviors[Behaviors::SHELTER_2].enable();
+		behaviors[Behaviors::WEAPON_1].enable();
+	}
+
+	if(behaviors[Behaviors::WEAPON_1].getStatus() >= 2  && Species::monsterSpecies[curViewing].complexity >= 7)
+	{
+		behaviors[Behaviors::WEAPON_2].enable();
+		behaviors[Behaviors::SHELTER_1].enable();
+	}
+	if(editing &&  Species::monsterSpecies[curViewing].complexity >= 2)
+	{
+		behaviors[10].enable();
 	}
 	for(unsigned int i = 0; i < behaviors.size(); i++)
 	{
