@@ -741,7 +741,7 @@ void FileUI::save(std::string filename)
 		}
 		for(unsigned int i = 0; i < GameObject::objects.size(); i++)
 		{
-			if(GameObject::objects[i]->getName() == "Ground")
+			if(GameObject::objects[i]->getName() == GROUND)
 			{
 				Ground* g = static_cast<Ground*>(GameObject::objects[i]);
 				file << "GROUND,";
@@ -752,7 +752,7 @@ void FileUI::save(std::string filename)
 				file << to_string(g->getBiome()).c_str();
 				file << "\n";
 			}
-			if(GameObject::objects[i]->getName() == "Plant")
+			if(GameObject::objects[i]->getName() == PLANT)
 			{
 				Plant* g = static_cast<Plant*>(GameObject::objects[i]);
 				file << "PLANT,";
@@ -769,7 +769,7 @@ void FileUI::save(std::string filename)
 				file << to_string(g->getPopulation()).c_str();
 				file << "\n";
 			}
-			if(GameObject::objects[i]->getName() == "Meat")
+			if(GameObject::objects[i]->getName() == MEAT)
 			{
 				Meat* g = static_cast<Meat*>(GameObject::objects[i]);
 				file << "MEAT,";
@@ -782,7 +782,7 @@ void FileUI::save(std::string filename)
 				file << to_string(g->getSpecies()).c_str();
 				file << "\n";
 			}
-			if(GameObject::objects[i]->getName() == "Monster")
+			if(GameObject::objects[i]->getName() == MONSTER)
 			{
 				Monster* g = static_cast<Monster*>(GameObject::objects[i]);
 				file << "MONSTER,";

@@ -19,6 +19,7 @@ typedef unsigned int uint;
 	#define OBJECTS_GAMEOBJECT_H_
 	#include "Fog.h"
 	typedef enum Biome{WATER,DIRT,BEACH,DESERT,GRASS,JUNGLE,TUNDRA,MOUNTAIN,SNOW,FRESHWATER,NIL} Biome;
+	typedef enum ObjectType{PLANT,GROUND,MONSTER,MEAT,EYECANDY} ObjectType;
 	class GameObject {
 		public:
 			GameObject(int ix, int iy,int w, int h);
@@ -35,7 +36,7 @@ typedef unsigned int uint;
 			int getY();
 			int getWidth();
 			int getHeight();
-			string getName();
+			ObjectType getName();
 			void unClick();
 			bool isClicked();
 
@@ -51,6 +52,7 @@ typedef unsigned int uint;
 			static void resetEvolution();
 			static Fog fog[60][60];
 			static int getRemovedFog();
+			static vector<vector<vector<GameObject*>>> cluster;
 		private:
 			int stretchSize = 1;
 		protected:
@@ -60,7 +62,7 @@ typedef unsigned int uint;
 			int y = 0;
 			int width = 0;
 			int height = 0;
-			string name;
+			ObjectType name;
 			void setX(int x);
 			void setY(int y);
 			void setWidth(int w);
@@ -81,6 +83,7 @@ typedef unsigned int uint;
 			static int worldMouseY;
 			bool clicked;
 			bool getClicking();
+
 
 
 	};

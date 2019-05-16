@@ -13,7 +13,7 @@ EyeCandy::EyeCandy(int ix, int iy, int iImage) : GameObject(ix,iy,8,8)
 {
 	image = iImage;
 	timeRemaining = 30;
-	name = "EyeCandy";
+	name = EYECANDY;
 }
 
 EyeCandy::~EyeCandy() {

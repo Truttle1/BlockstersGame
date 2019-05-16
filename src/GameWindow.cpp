@@ -256,14 +256,14 @@ void GameWindow::gameTick()
 			GameObject* obj = GameObject::objects[i];
 			obj->setInternalClock(internalClock);
 			obj->tick();
-			if(obj != nullptr && moving && obj->getName() == "Monster")
+			if(obj != nullptr && moving && obj->getName() == MONSTER)
 			{
 				obj->nextMove();
 			}
 			GameObject* temp = GameObject::objects[i];
 			if(temp)
 			{
-				if(temp->getName() == "Plant")
+				if(temp->getName() == PLANT)
 				{
 					Plant* p = static_cast<Plant*>(temp);
 					if(!(p->getAlive()))
@@ -273,7 +273,7 @@ void GameWindow::gameTick()
 						GameObject::objects.erase(GameObject::objects.begin()+i);
 					}
 				}
-				if(temp->getName() == "EyeCandy")
+				if(temp->getName() == EYECANDY)
 				{
 					EyeCandy* p = static_cast<EyeCandy*>(temp);
 					if((p->getTimeRemaining()<=0))
@@ -283,7 +283,7 @@ void GameWindow::gameTick()
 						GameObject::objects.erase(GameObject::objects.begin()+i);
 					}
 				}
-				if(temp->getName() == "Meat")
+				if(temp->getName() == MEAT)
 				{
 					Meat* p = static_cast<Meat*>(temp);
 					if(!(p->isAlive()))
@@ -494,7 +494,7 @@ void GameWindow::gameRender()
 		GameObject* obj = GameObject::objects[i];
 		if(obj != NULL)
 		{
-			if(obj->getName() == "EyeCandy" || obj->getName() == "Meat")
+			if(obj->getName() == EYECANDY || obj->getName() == MEAT)
 			{
 					obj->render();
 			}
@@ -662,14 +662,40 @@ void GameWindow::doGeneration()
 		points += pointIncrease+1;
 	}
 	GameObject::resetEvolution();
+
+	for(unsigned int x = 0; x < GameObject::cluster.size(); x++)
+	{
+		for(unsigned int y = 0; y < GameObject::cluster[x].size(); y++)
+		{
+			for(unsigned int z = 0; z < GameObject::cluster[x][y].size(); z++)
+			{
+				GameObject* temp = GameObject::cluster[x][y][z];
+				if(temp != GameObject::cluster[x][y][z])
+				{
+					GameObject::cluster[x][y][z] = nullptr;
+					GameObject::cluster[x][y].erase(GameObject::cluster[x][y].begin()+z);
+				}
+				else if(temp->getName() == PLANT)
+				{
+					Plant* p = static_cast<Plant*>(temp);
+					if(!p->getAlive())
+					{
+						GameObject::cluster[x][y][z] = nullptr;
+						GameObject::cluster[x][y].erase(GameObject::cluster[x][y].begin()+z);
+					}
+				}
+			}
+		}
+	}
+
 	for(uint i = GameObject::generation > -10 ? 0 : 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
-		if(temp->getName().compare("Ground") == 0 || temp->getName().compare("Plant") == 0 || temp->getName().compare("Meat") == 0)
+		if(temp->getName() == GROUND || temp->getName() == PLANT || temp->getName() == MEAT)
 		{
 			temp->nextGeneration();
 		}
-		if(temp != nullptr && temp->getName() == "Plant")
+		if(temp != nullptr && temp->getName() == PLANT)
 		{
 			Plant* p = static_cast<Plant*>(temp);
 			if(!(p->getAlive()))
@@ -680,7 +706,7 @@ void GameWindow::doGeneration()
 				i--;
 			}
 		}
-		if(temp->getName() == "Monster")
+		if(temp->getName() == MONSTER)
 		{
 			Monster* p = static_cast<Monster*>(temp);
 			p->nextGeneration();
@@ -718,14 +744,14 @@ void GameWindow::doGeneration()
 					ry = (rand()%120)*8;
 					for(unsigned int i = 0; i < GameObject::objects.size(); i++)
 					{
-						if(GameObject::objects[i]->getName() == "Plant")
+						if(GameObject::objects[i]->getName() == PLANT)
 						{
 							if(std::abs(GameObject::objects[i]->getX() - rx) <= 16 && std::abs(GameObject::objects[i]->getY() - ry) <= 16)
 							{
 								foundPlant++;
 							}
 						}
-						if(GameObject::objects[i]->getName() == "Ground")
+						if(GameObject::objects[i]->getName() == GROUND)
 						{
 							if(std::abs(GameObject::objects[i]->getX() - rx) == 0 && std::abs(GameObject::objects[i]->getY() - ry) == 0)
 							{
@@ -794,11 +820,11 @@ void GameWindow::doMove()
 	for(uint i = 3500; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
-		if(temp && temp->getName() == "Monster")
+		if(temp && temp->getName() == MONSTER)
 		{
 			temp->nextMove();
 		}
-		if(temp && temp->getName() == "Monster")
+		if(temp && temp->getName() == MONSTER)
 		{
 			Monster* p = static_cast<Monster*>(temp);
 			if(p && !(p->getAlive()))
@@ -829,7 +855,7 @@ void GameWindow::runUI()
 		{
 			for(unsigned int i = 0; i < GameObject::objects.size(); i++)
 			{
-				if(GameObject::objects[i] != nullptr && GameObject::objects[i]->getName() == "Monster")
+				if(GameObject::objects[i] != nullptr && GameObject::objects[i]->getName() == MONSTER)
 				{
 					Monster* m = static_cast<Monster*>(GameObject::objects[i]);
 					m->resetMovement();
@@ -1051,7 +1077,7 @@ bool GameWindow::isMoving()
 {
 	for(unsigned int i = 0; i < GameObject::objects.size(); i++)
 	{
-		if(GameObject::objects[i] != nullptr && GameObject::objects[i]->getName() == "Monster" && genPhase == END_PHASE)
+		if(GameObject::objects[i] != nullptr && GameObject::objects[i]->getName() == MONSTER && genPhase == END_PHASE)
 		{
 			Monster* m = static_cast<Monster*>(GameObject::objects[i]);
 			if(m->isMoving())

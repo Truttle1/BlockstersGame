@@ -40,6 +40,8 @@ class Plant:public GameObject
 		int arbitraryPopNumber;
 		int age;
 		int hp;
+		int clusterX;
+		int clusterY;
 
 		int getNeighborhood();
 		void killSameLocation();

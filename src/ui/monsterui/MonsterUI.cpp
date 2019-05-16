@@ -570,7 +570,7 @@ void MonsterUI::saveMonster()
 
 	for(unsigned int i = 3600; i < GameObject::objects.size(); i++)
 	{
-		if(GameObject::objects[i]->getName() == "Monster")
+		if(GameObject::objects[i]->getName() == MONSTER)
 		{
 			Monster* monst = static_cast<Monster*>(GameObject::objects[i]);
 			if(monst->getSpecies() == curViewing)

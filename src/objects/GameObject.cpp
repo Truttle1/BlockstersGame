@@ -10,6 +10,7 @@
 
 vector<GameObject*> GameObject::objects;
 vector<GameObject*> GameObject::monsters;
+vector<vector<vector<GameObject*>>> GameObject::cluster(15, vector<vector<GameObject*>> (15));
 GameObject* GameObject::groundArray[60][60];
 Fog GameObject::fog[60][60];
 int GameObject::internalClock = 0;
@@ -55,7 +56,7 @@ Font GameObject::font;
 	{
 		return this->height;
 	}
-	string GameObject::getName()
+	ObjectType GameObject::getName()
 	{
 		return this->name;
 	}

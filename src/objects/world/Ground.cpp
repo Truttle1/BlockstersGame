@@ -10,7 +10,7 @@ typedef GameObject super;
 const int LENGTH_OF_CREATE = 18;
 Ground::Ground(int ix, int iy,int w, int h, bool newGame) : super(ix,iy,w,h)
 {
-	name = "Ground";
+	name = GROUND;
 	if(rand()%250 < 1)
 	{
 		this->biome = DIRT;
@@ -212,7 +212,7 @@ int Ground::getSurroundingTypeOld(Biome type, Biome type2)
 		{
 			GameObject* tempObject;
 			tempObject = obj[i];
-			if(tempObject->getName() == "Ground" && tempObject != this)
+			if(tempObject->getName() == GROUND && tempObject != this)
 			{
 				Ground* tempGround = static_cast<Ground*>(tempObject);
 				if(tempGround->getBiome() == type||tempGround->getBiome() == type2)

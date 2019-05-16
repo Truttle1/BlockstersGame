@@ -12,7 +12,7 @@ Meat::Meat(int ix, int iy, int iNutrients, int iSpecies) : GameObject(ix,iy,8,8)
 {
 	nutrients = iNutrients;
 	timeLeft = 4;
-	name = "Meat";
+	name = MEAT;
 	alive = true;
 	species = iSpecies;
 	clickedHere = false;

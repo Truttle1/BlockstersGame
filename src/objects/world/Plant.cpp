@@ -11,19 +11,22 @@
 #include <algorithm>
 Plant::Plant(int ix, int iy, int sp) : GameObject(ix,iy,8,8)
 {
-	name = "Plant";
+	name = PLANT;
 	species = sp;
 	//cout << "Plant of species " << sp << endl;
 	arbitraryPopNumber = (rand()%Species::plantSpecies[species].groupSize)+1;
 	Species::plantSpecies[species].population += arbitraryPopNumber;
 	age = 0;
 	hp = (Species::plantSpecies[species].size/3)+1;
+	clusterX = (x / 16) / 6;
+	clusterY = (y / 16) / 6;
+	std::cout << clusterX << "," << clusterY << endl;
 	bool onLand = true;
 
 	for(uint i = 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* g = GameObject::objects[i];
-		if(g->getName() == "Ground")
+		if(g->getName() == GROUND)
 		{
 			Ground* g2 = static_cast<Ground*>(g);
 			if(CheckCollisionRecs(g2->getBounds(),this->getBounds()))
@@ -48,6 +51,7 @@ Plant::Plant(int ix, int iy, int sp) : GameObject(ix,iy,8,8)
 	//Plants at the same location die.
 	killSameLocation();
 	curBiome = getBiome();
+	cluster[clusterX][clusterY].push_back(this);
 }
 Plant::~Plant()
 {
@@ -222,7 +226,7 @@ int Plant::getNeighborhood()
 		{
 			int distX = std::abs((this->getX())-(temp->getX()));
 			int distY = std::abs((this->getY())-(temp->getY()));
-			if(distX <= 8 && distY <= 8 && temp != this && temp->getName() == "Plant")
+			if(distX <= 8 && distY <= 8 && temp != this && temp->getName() == PLANT)
 			{
 				//printf("%d, %d :: %d, %d, :: %d, %d\n",x,y,temp->getX(),temp->getY(),distX,distY);
 				c++; //GOT EM
@@ -245,7 +249,7 @@ void Plant::killSameLocation()
 	for(uint i = 3600; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
-		if(temp && temp->getX() == this->getX() && temp->getY() == this->getY() && temp != this && temp->getName() == "Plant")
+		if(temp && temp->getX() == this->getX() && temp->getY() == this->getY() && temp != this && temp->getName() == PLANT)
 		{
 			Plant* p = static_cast<Plant*>(temp);
 			if(p->getAlive() && Species::plantSpecies[p->getSpecies()].toxicity > Species::plantSpecies[species].size)
@@ -498,7 +502,7 @@ Biome Plant::getBiome()
 	for(unsigned int i = 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* g = GameObject::objects[i];
-		if(g->getName() == "Ground")
+		if(g->getName() == GROUND)
 		{
 			Ground* g2 = static_cast<Ground*>(g);
 			if(CheckCollisionRecs(g2->getBounds(),this->getBounds()))

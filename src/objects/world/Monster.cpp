@@ -10,7 +10,7 @@
 Monster::Monster(int ix, int iy, int sp, bool e) : GameObject(ix,iy,8,8)
 {
 	alive = true;
-	name = "Monster";
+	name = MONSTER;
 	species = sp;
 	arbitraryPopNumber = (rand()%10)+1;
 	Species::monsterSpecies[species].population += arbitraryPopNumber;
@@ -61,11 +61,6 @@ void Monster::tick()
 	getClicking();
 	if(clickedHere && !UI::isOpen())
 	{
-		if(name != "Monster")
-		{
-			kill();
-			name = "Monster";
-		}
 		Camera2D* cam = GameWindow::getCamera();
 		int a = -GameWindow::getCamera()->offset.x / GameWindow::getCamera()->zoom;
 		string rivalStatus = " ";
@@ -122,7 +117,7 @@ void Monster::tick()
 		{
 			for(unsigned int i=3600; i<GameObject::objects.size();i++)
 			{
-				if(GameObject::objects[i] && GameObject::objects[i]->getName() == "Meat")
+				if(GameObject::objects[i] && GameObject::objects[i]->getName() == MEAT)
 				{
 					Meat* m = static_cast<Meat*>(GameObject::objects[i]);
 					if(m && monster.carnivore && CheckCollisionRecs(m->getBounds(),this->getBounds()) && m->getSpecies() != species)
@@ -338,7 +333,7 @@ void Monster::nextGeneration()
 	for(uint i = 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* g = GameObject::objects[i];
-		if(g->getName().compare("Ground")==0)
+		if(g->getName() == GROUND)
 		{
 			Ground* g2 = dynamic_cast<Ground*>(g);
 			if(CheckCollisionRecs(g2->getBounds(),this->getBounds()))
@@ -360,7 +355,7 @@ void Monster::nextGeneration()
 		{
 			for(unsigned int i = 3600; i < GameObject::objects.size(); i++)
 			{
-				if(GameObject::objects[i]->getName() == "Plant")
+				if(GameObject::objects[i]->getName() == PLANT)
 				{
 					int px = GameObject::objects[i]->getX();
 					int py = GameObject::objects[i]->getY();
@@ -468,7 +463,7 @@ int Monster::getNeighborhood()
 		GameObject* temp = GameObject::objects[i];
 		int distX = std::abs((this->getX())-(temp->getX()));
 		int distY = std::abs((this->getY())-(temp->getY()));
-		if(distX <= 8 && distY <= 8 && temp != this && temp->getName() == "Monster")
+		if(distX <= 8 && distY <= 8 && temp != this && temp->getName() == MONSTER)
 		{
 			//printf("%d, %d :: %d, %d, :: %d, %d\n",x,y,temp->getX(),temp->getY(),distX,distY);
 			c++; //GOT EM
@@ -603,7 +598,7 @@ void Monster::nextMove()
 		//cout << "CARNIVORE" << endl;
 		for(unsigned int i=3600; i<GameObject::objects.size();i++)
 		{
-			if(GameObject::objects[i] && GameObject::objects[i]->getName() == "Meat" && monster.carnivore)
+			if(GameObject::objects[i] && GameObject::objects[i]->getName() == MEAT && monster.carnivore)
 			{
 				Meat* m = static_cast<Meat*>(GameObject::objects[i]);
 				if(m && monster.carnivore && CheckCollisionRecs(m->getBounds(),this->getBounds()) && m->getSpecies() != species)
@@ -611,7 +606,7 @@ void Monster::nextMove()
 					hp += m->eat();
 				}
 			}
-			if(GameObject::objects[i] && GameObject::objects[i]->getName() == "Meat" && monster.behaviors[Behaviors::WEAPON_1])
+			if(GameObject::objects[i] && GameObject::objects[i]->getName() == MEAT && monster.behaviors[Behaviors::WEAPON_1])
 			{
 				Monster* m = static_cast<Monster*>(GameObject::objects[i]);
 				if(CheckCollisionRecs(m->getBounds(),this->getBounds()) && m->getSpecies() != species)
@@ -1129,7 +1124,7 @@ void Monster::attackMonsters()
 	Monster* m;
 	for(unsigned int i=0; i < GameObject::monsters.size(); i++)
 	{
-		if(GameObject::monsters[i] && GameObject::monsters[i]->getName() == "Monster")
+		if(GameObject::monsters[i] && GameObject::monsters[i]->getName() == MONSTER)
 		{
 			if(sqrt(pow(GameObject::monsters[i]->getX()-x,2)+pow(GameObject::monsters[i]->getY()-y,2)) <= 12)
 			{
@@ -1255,7 +1250,7 @@ void Monster::closeFarMovement()
 		int shortestDist = 99999;
 		for(unsigned int i=0; i<GameObject::monsters.size(); i++)
 		{
-			if(monsters[i]->getName() == "Monster")
+			if(monsters[i]->getName() == MONSTER)
 			{
 				Monster* monst = static_cast<Monster*>(monsters[i]);
 				if(Species::monsterSpecies[monst->getSpecies()].enemy != monster.enemy && Species::monsterSpecies[monst->getSpecies()].land == monster.land)
@@ -1298,7 +1293,7 @@ void Monster::closeFarMovement()
 		int shortestDist = 99999;
 		for(unsigned int i=0; i<GameObject::monsters.size(); i++)
 		{
-			if(monsters[i]->getName() == "Monster")
+			if(monsters[i]->getName() == MONSTER)
 			{
 				Monster* monst = static_cast<Monster*>(monsters[i]);
 				if(Species::monsterSpecies[monst->getSpecies()].enemy != monster.enemy && Species::monsterSpecies[monst->getSpecies()].land == monster.land)
@@ -1347,7 +1342,7 @@ void Monster::groupingMovement()
 		int shortestDist = 99999;
 		for(unsigned int i=0; i<GameObject::monsters.size(); i++)
 		{
-			if(monsters[i]->getName() == "Monster")
+			if(monsters[i]->getName() == MONSTER)
 			{
 				Monster* monst = static_cast<Monster*>(monsters[i]);
 				if(monst->getSpecies() == species && monst != this)
@@ -1383,7 +1378,7 @@ void Monster::groupingMovement()
 		int shortestDist = 99999;
 		for(unsigned int i=0; i<GameObject::monsters.size(); i++)
 		{
-			if(monsters[i]->getName() == "Monster")
+			if(monsters[i]->getName() == MONSTER)
 			{
 				Monster* monst = static_cast<Monster*>(monsters[i]);
 				if(monst->getSpecies() == species && monst != this)
@@ -1421,7 +1416,7 @@ void Monster::plantsMovement()
 	int shortestDist = 99999;
 	for(unsigned int i=0; i<GameObject::objects.size(); i++)
 	{
-		if(objects[i]->getName() == "Plant")
+		if(objects[i]->getName() == PLANT)
 		{
 			Plant* plnt = static_cast<Plant*>(objects[i]);
 			if(Species::plantSpecies[plnt->getSpecies()].land == monster.land)
@@ -1459,7 +1454,7 @@ void Monster::meatMovement()
 	int shortestDist = 99999;
 	for(unsigned int i=0; i<GameObject::objects.size(); i++)
 	{
-		if(objects[i]->getName() == "Meat")
+		if(objects[i]->getName() == MEAT)
 		{
 			Meat* meat = static_cast<Meat*>(objects[i]);
 			if(Species::monsterSpecies[meat->getSpecies()].land == monster.land)
