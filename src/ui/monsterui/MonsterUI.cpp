@@ -349,7 +349,7 @@ void MonsterUI::drawEditScreen()
 	}
 	textBox.render();
 	calculateUpdates();
-	if(page == 0)
+	if(page == 2)
 	{
 		birthChanceButton.render();
 		immuneSystemButton.render();
@@ -366,7 +366,7 @@ void MonsterUI::drawEditScreen()
 		DrawTextEx(font,sw.c_str(),{284,320},24.0f,0.0f,BLACK);
 		DrawTextEx(font,"Neighbors",{284,340},24.0f,0.0f,BLACK);
 	}
-	else if(page == 1)
+	else if(page == 0)
 	{
 		sizeButton.render();
 		sizeButton2.render();
@@ -428,7 +428,7 @@ void MonsterUI::drawEditScreen()
 		DrawTextEx(font,sz.c_str(),{284,320},24.0f,0.0f,BLACK);
 		DrawTextEx(font,sizeDesc.c_str(),{284,340},24.0f,0.0f,BLACK);
 	}
-	else if(page == 2)
+	else if(page == 1)
 	{
 		strengthButton.render();
 		speedButton.render();
@@ -838,17 +838,17 @@ void MonsterUI::tickEditScreen()
 			}
 		}
 	}
-	if(page == 0)
+	if(page == 2)
 	{
 		birthChanceButton.tick();
 		immuneSystemButton.tick();
 	}
-	else if(page == 1)
+	else if(page == 0)
 	{
 		sizeButton.tick();
 		sizeButton2.tick();
 	}
-	else if(page == 2)
+	else if(page == 1)
 	{
 		strengthButton.tick();
 		speedButton.tick();
