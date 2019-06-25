@@ -21,6 +21,7 @@ int main()
 		}
 		EndDrawing();
 	}
+
 	return 0;
 }
 

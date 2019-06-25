@@ -17,8 +17,9 @@ src/objects/world/Meat.o: ../src/objects/world/Meat.cpp \
  ../src/objects/world/../../objects/world/../../img/../libraries/raylib.h \
  ../src/objects/world/../../objects/world/Plant.h \
  ../src/objects/world/../../objects/world/Monster.h \
- ../src/objects/world/../../objects/world/../../img/MonsterImg.h \
+ ../src/objects/world/../../objects/world/Shelter.h \
  ../src/objects/world/../../objects/world/../../GameWindow.h \
+ ../src/objects/world/../../objects/world/../../img/MonsterImg.h \
  ../src/objects/world/../../objects/world/../EyeCandy.h \
  ../src/objects/world/../../objects/world/../GameObject.h \
  ../src/objects/world/../../objects/world/../../ui/UI.h \
@@ -53,6 +54,7 @@ src/objects/world/Meat.o: ../src/objects/world/Meat.cpp \
  ../src/objects/world/../../ui/fileui/../../objects/GameObject.h \
  ../src/objects/world/../../ui/fileui/../../objects/world/Ground.h \
  ../src/objects/world/../../ui/fileui/../../objects/world/Monster.h \
+ ../src/objects/world/../../ui/fileui/../../objects/world/Shelter.h \
  ../src/objects/world/../../ui/fileui/../monsterui/TextBox.h \
  ../src/objects/world/../../ui/MessageBox.h
 
@@ -94,9 +96,11 @@ src/objects/world/Meat.o: ../src/objects/world/Meat.cpp \
 
 ../src/objects/world/../../objects/world/Monster.h:
 
-../src/objects/world/../../objects/world/../../img/MonsterImg.h:
+../src/objects/world/../../objects/world/Shelter.h:
 
 ../src/objects/world/../../objects/world/../../GameWindow.h:
+
+../src/objects/world/../../objects/world/../../img/MonsterImg.h:
 
 ../src/objects/world/../../objects/world/../EyeCandy.h:
 
@@ -165,6 +169,8 @@ src/objects/world/Meat.o: ../src/objects/world/Meat.cpp \
 ../src/objects/world/../../ui/fileui/../../objects/world/Ground.h:
 
 ../src/objects/world/../../ui/fileui/../../objects/world/Monster.h:
+
+../src/objects/world/../../ui/fileui/../../objects/world/Shelter.h:
 
 ../src/objects/world/../../ui/fileui/../monsterui/TextBox.h:
 

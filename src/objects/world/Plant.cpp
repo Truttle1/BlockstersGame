@@ -17,12 +17,23 @@ Plant::Plant(int ix, int iy, int sp) : GameObject(ix,iy,8,8)
 	arbitraryPopNumber = (rand()%Species::plantSpecies[species].groupSize)+1;
 	Species::plantSpecies[species].population += arbitraryPopNumber;
 	age = 0;
-	hp = (Species::plantSpecies[species].size/3)+1;
+	hp = (Species::plantSpecies[species].size)+1;
 	clusterX = (x / 16) / 6;
 	clusterY = (y / 16) / 6;
-	std::cout << clusterX << "," << clusterY << endl;
+	//std::cout << clusterX << "," << clusterY << endl;
 	bool onLand = true;
 
+	if(generation < 15)
+	{
+		while(Species::plantSpecies[species].maxDeath - Species::plantSpecies[species].minDeath > 5)
+		{
+			Species::plantSpecies[species].maxDeath--;
+		}
+		while(Species::plantSpecies[species].maxNew - Species::plantSpecies[species].minNew > 5)
+		{
+			Species::plantSpecies[species].maxNew--;
+		}
+	}
 	for(uint i = 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* g = GameObject::objects[i];
@@ -174,7 +185,7 @@ void Plant::nextGeneration()
 		repValue = rand()%26;
 	}
 	//Reproduce
-	if(age>=(Species::plantSpecies[this->species].lifespan/8) && gn<Species::plantSpecies[this->species].maxNew && gn>Species::plantSpecies[this->species].minNew)
+	if(gn<Species::plantSpecies[this->species].maxNew && gn>Species::plantSpecies[this->species].minNew)
 	{
 		if( repValue<13 || (generation<0 && repValue < 15))
 		{
@@ -182,12 +193,17 @@ void Plant::nextGeneration()
 			int newY = ((rand()%5)*8)-16;
 			Plant* p = new Plant(this->getX()+newX,this->getY()+newY,this->getSpecies());
 			GameObject::objects.push_back(p);
-			if(((generation>0 && rand()%2500<40) ||rand()%9500<40) && (GameObject::evolutionOccuredYet < 1 || generation < 1) && alive && Species::plantSpecies[this->species].evolvePass > 0)
+			if(rand()%4000 < 75 && alive && Species::plantSpecies[this->species].evolvePass > 0)
 			{
-				evolve();
-				if(generation > 15)
+				if(evolutionOccuredYet <= 2 && Species::plantSpecies[species].land)
 				{
+					evolve();
 					GameObject::evolutionOccuredYet++;
+				}
+				else if(evolutionOccuredYetWater <= 1)
+				{
+					evolve();
+					GameObject::evolutionOccuredYetWater++;
 				}
 			}
 		}
@@ -219,9 +235,9 @@ int Plant::getSpecies()
 int Plant::getNeighborhood()
 {
 	int c = 0;
-	for(uint i = 3600; i<GameObject::objects.size();i++)
+	for(uint i = 0; i<GameObject::cluster[clusterX][clusterY].size();i++)
 	{
-		GameObject* temp = GameObject::objects[i];
+		GameObject* temp = GameObject::cluster[clusterX][clusterY][i];
 		if(temp)
 		{
 			int distX = std::abs((this->getX())-(temp->getX()));
@@ -293,7 +309,7 @@ void Plant::evolve()
 	int toxicity = Species::plantSpecies[species].toxicity;
 	int groupSize = Species::plantSpecies[species].groupSize;
 	int lifespan = Species::plantSpecies[species].lifespan;
-	Species::plantSpecies[species].evolvePass = 0;
+	Species::plantSpecies[species].evolvePass = -1;
 
 	if(rand()%100<50)
 	{
@@ -333,12 +349,12 @@ void Plant::evolve()
 	{
 		size+=2;
 		lifespan++;
-		toxicity--;
 	}
-	else if(size < 0 && rand()%100<70)
+	else if(rand()%100<70)
 	{
 		toxicity+=2;
 	}
+	size++;
 	nutrients++;
 
 	if(nutrients < 1)
@@ -469,6 +485,17 @@ void Plant::evolve()
 		newSp.image = Species::replaceColorsToImage(&newSp.image,ObjectColors::PLANT_GREEN,newSp.stemColor);
 		newSp.image = Species::replaceColorsToImage(&newSp.image,ObjectColors::ROSE_RED,newSp.flowerColor);
 	}
+
+	if(newSp.size > (generation/5)+3)
+	{
+		newSp.size = (generation/5)+3;
+	}
+	/*
+	if(newSp.toxicity > (generation/4)+3)
+	{
+		newSp.toxicity = (generation/4)+3;
+	}
+	*/
 	Species::plantSpecies.push_back(newSp);
 	int newX = ((rand()%5)*8)-16;
 	int newY = ((rand()%5)*8)-16;
@@ -538,4 +565,20 @@ int Plant::getEaten(int amount)
 void Plant::removeHp(int amount)
 {
 	this->hp -= amount;
+}
+
+
+double Plant::distanceToPlayer()
+{
+	double dist = 99999999;
+	for(unsigned int i = 0; i < monsters.size(); i++)
+	{
+		GameObject* m = monsters[i];
+		double tempDist = std::sqrt(std::pow(x-m->getX(),2) + std::pow(x-m->getY(),2));
+		if(tempDist < dist)
+		{
+			dist = tempDist;
+		}
+	}
+	return dist;
 }

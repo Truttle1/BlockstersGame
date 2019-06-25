@@ -70,6 +70,16 @@ void Meat::tick()
 		string meatType = Species::monsterSpecies[species].name;
 		GameWindow::showUpperText("Meat of " + meatType + "\nContains " + to_string(nutrients) + " HP of Nutrients");
 	}
+
+	while(x%8 != 0)
+	{
+		x++;
+	}
+
+	while(y%8 != 0)
+	{
+		y++;
+	}
 }
 int Meat::getSpecies()
 {

@@ -18,6 +18,8 @@ GameWindow::GameMode GameWindow::gameMode = TITLE_SCREEN;
 std::string GameWindow::fileName = "File Name";
 MessageBox GameWindow::messageBox;
 bool GameWindow::tutorial[100];
+int GameWindow::shelterButton = 0;
+bool GameWindow::clickedShelterButton = false;
 
 GameWindow::GameWindow()
 {
@@ -74,6 +76,11 @@ void GameWindow::init(Camera2D* cam)
 	EyeCandy::setBoomO(LoadTexture("src/img/boom_o.png"));
 	EyeCandy::setBoomY(LoadTexture("src/img/boom_y.png"));
 
+	Shelter::basic0 = LoadTexture("src/img/hut0.png");
+	Shelter::basic1 = LoadTexture("src/img/hut1.png");
+	Shelter::simple0 = LoadTexture("src/img/house0.png");
+	Shelter::simple1 = LoadTexture("src/img/house1.png");
+
 	setupLand();
 	GameObject::font = LoadFontEx("src/SGK050.ttf",240,0,0);
 	plantUI = PlantUI();
@@ -111,7 +118,7 @@ void GameWindow::init(Camera2D* cam)
 
 	messageBox.enable("Welcome!/Hey there, and welcome to this little/monster simulation game!/"
 			"Right now, many small, simple monsters/are living on Blockster World!/"
-			"/Click the Next Generation button to/have your monsters eat, die,/and reproduce now.");
+			"/Click the Next Turn button to/have your monsters eat, die,/and reproduce now.");
 	messageBox.init(GameObject::font);
 }
 void GameWindow::removePoints(int removePoints)
@@ -151,7 +158,12 @@ void GameWindow::tick()
 	else if(gameMode == GAME_SCREEN)
 	{
 		gameTick();
-		cout << GameObject::objects.size() << endl;
+		//cout << GameObject::objects.size() << endl;
+	}
+	else if(gameMode == SELECTION_SCREEN)
+	{
+		selectionTick();
+		//cout << GameObject::objects.size() << endl;
 	}
 }
 
@@ -165,6 +177,10 @@ void GameWindow::render()
 	{
 		gameRender();
 	}
+	else if(gameMode == SELECTION_SCREEN)
+	{
+		selectionRender();
+	}
 }
 
 void GameWindow::drawGUI()
@@ -177,6 +193,10 @@ void GameWindow::drawGUI()
 	{
 		gameDrawGUI();
 	}
+	else if(gameMode == SELECTION_SCREEN)
+	{
+		selectionDrawGUI();
+	}
 }
 
 void GameWindow::titleScreenTick()
@@ -184,13 +204,54 @@ void GameWindow::titleScreenTick()
 	loadUI.tick();
 	if(getClicking(playX,playY,128,64))
 	{
-		gameMode = GAME_SCREEN;
+		gameMode = SELECTION_SCREEN;
 		loadUI.lighten();
 	}
 	if(getClicking(loadX,loadY,128,64))
 	{
 		loadUI.toggle();
 	}
+}
+
+void GameWindow::selectionTick()
+{
+
+	if(getClicking(playX,playY,128,64))
+	{
+		gameMode = GAME_SCREEN;
+		loadUI.lighten();
+	}
+	else if(getClicking(playX+320,playY,128,64))
+	{
+		Species::monsterSpecies[0].land = false;
+		gameMode = GAME_SCREEN;
+		loadUI.lighten();
+	}
+}
+
+void GameWindow::selectionRender()
+{
+
+}
+
+void GameWindow::selectionDrawGUI()
+{
+	DrawRectangle(0,0,640,480,BLACK);
+	DrawTextEx(GameObject::font,"SELECT START LOCATION",{32,32},60.0f,0.0f,WHITE);
+
+	DrawRectangle(playX,playY,128,64,WHITE);
+	DrawTextEx(GameObject::font,"LAND",{playX+32,playY+16},36.0f,0.0f,BLACK);
+
+	DrawRectangle(playX+320,playY,128,64,WHITE);
+	DrawTextEx(GameObject::font,"SEA",{playX+320+48,playY+16},36.0f,0.0f,BLACK);
+
+	DrawTextEx(GameObject::font,"All monsters are either land monsters, or sea monsters.",{32,320},24.0f,0.0f,WHITE);
+	DrawTextEx(GameObject::font,"There is more surface area in the water, allowing you to",{32,336},24.0f,0.0f,WHITE);
+	DrawTextEx(GameObject::font,"have a greater reach. Land is split into multiple ",{32,352},24.0f,0.0f,WHITE);
+	DrawTextEx(GameObject::font,"continents, causing plants and rival monsters to be",{32,368},24.0f,0.0f,WHITE);
+	DrawTextEx(GameObject::font,"closer together.",{32,384},24.0f,0.0f,WHITE);
+
+	DrawTextEx(GameObject::font,"THIS CANNOT BE CHANGED AFTER THE GAME STARTS!",{32,416},24.0f,0.0f,RED);
 }
 
 MessageBox* GameWindow::getMessageBox()
@@ -209,6 +270,15 @@ void GameWindow::gameTick()
 	if(GameObject::generation == 0 && genPhase == MOVE_PHASE)
 	{
 		doMove();
+	}
+	if(generationing)
+	{
+		delay++;
+		if(delay>5)
+		{
+			doGeneration();
+			delay = 0;
+		}
 	}
 	messageBox.tick();
 	//cout << GetFPS() << " " << GameObject::objects.size() << endl;
@@ -271,6 +341,24 @@ void GameWindow::gameTick()
 						delete(GameObject::objects[i]);
 						GameObject::objects[i] = nullptr;
 						GameObject::objects.erase(GameObject::objects.begin()+i);
+					}
+				}
+				if(temp->getName() == SHELTER)
+				{
+					Shelter* p = static_cast<Shelter*>(temp);
+					if(!(p->getAlive()))
+					{
+						delete(GameObject::objects[i]);
+						GameObject::objects[i] = nullptr;
+						GameObject::objects.erase(GameObject::objects.begin()+i);
+						for(unsigned int j = 0; j < GameObject::shelters.size(); j++)
+						{
+							if(temp == GameObject::shelters[j])
+							{
+								GameObject::shelters[j]= nullptr;
+								GameObject::shelters.erase(GameObject::shelters.begin()+j);
+							}
+						}
 					}
 				}
 				if(temp->getName() == EYECANDY)
@@ -500,6 +588,17 @@ void GameWindow::gameRender()
 			}
 		}
 	}
+	for(uint i=0; i<GameObject::objects.size();i++)
+	{
+		GameObject* obj = GameObject::objects[i];
+		if(obj != NULL)
+		{
+			if(obj->getName() == SHELTER)
+			{
+					obj->render();
+			}
+		}
+	}
 	for(uint x=0; x<60; x++)
 	{
 		for(uint y=0; y<60; y++)
@@ -530,7 +629,7 @@ void GameWindow::gameDrawGUI()
 		saveUI.render();
 		loadUI.render();
 		DrawRectangle(480,0,160,480,WHITE);
-		string genString = "Gen: " + to_string(GameObject::generation);
+		string genString = "Turn: " + to_string(GameObject::generation);
 
 		if(!UI::isOpen())
 		{
@@ -555,6 +654,27 @@ void GameWindow::gameDrawGUI()
 			{
 				DrawRectangle(NEXT_GEN_X,NEXT_GEN_Y,128,32,{0,128,128,255});
 				DrawTextEx(GameObject::font,"Moving Monsters...",{static_cast<float>(NEXT_GEN_X+8),static_cast<float>(NEXT_GEN_Y+8)},16,0.0f,WHITE);
+			}
+
+			if(shelterButton == 1)
+			{
+				DrawRectangle(SHELTER_X,SHELTER_Y,128,32,{0,0,0,255});
+				DrawTextEx(GameObject::font,"Create Shelter",{static_cast<float>(SHELTER_X+8),static_cast<float>(SHELTER_Y+8)},18,0.0f,WHITE);
+				DrawTextEx(GameObject::font,"Create Shelter",{static_cast<float>(SHELTER_X+9),static_cast<float>(SHELTER_Y+8)},18,0.0f,WHITE);
+			}
+
+			if(shelterButton == 2)
+			{
+				DrawRectangle(SHELTER_X,SHELTER_Y,128,32,{0,0,0,255});
+				DrawTextEx(GameObject::font,"Enter Shelter",{static_cast<float>(SHELTER_X+8),static_cast<float>(SHELTER_Y+8)},18,0.0f,WHITE);
+				DrawTextEx(GameObject::font,"Enter Shelter",{static_cast<float>(SHELTER_X+9),static_cast<float>(SHELTER_Y+8)},18,0.0f,WHITE);
+			}
+
+			if(shelterButton == 3)
+			{
+				DrawRectangle(SHELTER_X,SHELTER_Y,128,32,{0,0,0,255});
+				DrawTextEx(GameObject::font,"Exit Shelter",{static_cast<float>(SHELTER_X+8),static_cast<float>(SHELTER_Y+8)},18,0.0f,WHITE);
+				DrawTextEx(GameObject::font,"Exit Shelter",{static_cast<float>(SHELTER_X+9),static_cast<float>(SHELTER_Y+8)},18,0.0f,WHITE);
 			}
 		}
 		else
@@ -644,7 +764,7 @@ void GameWindow::setPoints(int newPoints)
 void GameWindow::getPointIncrease()
 {
 	pointIncrease = 1;
-	if(tutorial[99])
+	if(GameObject::generation > 45)
 	{
 		pointIncrease += 2;
 	}
@@ -655,6 +775,10 @@ void GameWindow::doGeneration()
 	for(unsigned int i = 0; i < Species::plantSpecies.size(); i++)
 	{
 		Species::plantSpecies[i].evolvePass++;
+	}
+	for(unsigned int i = 0; i < Species::monsterSpecies.size(); i++)
+	{
+		Species::monsterSpecies[i].evolvePass++;
 	}
 	if(GameObject::generation % 5 == 0)
 	{
@@ -670,12 +794,7 @@ void GameWindow::doGeneration()
 			for(unsigned int z = 0; z < GameObject::cluster[x][y].size(); z++)
 			{
 				GameObject* temp = GameObject::cluster[x][y][z];
-				if(temp != GameObject::cluster[x][y][z])
-				{
-					GameObject::cluster[x][y][z] = nullptr;
-					GameObject::cluster[x][y].erase(GameObject::cluster[x][y].begin()+z);
-				}
-				else if(temp->getName() == PLANT)
+				if(temp->getName() == PLANT)
 				{
 					Plant* p = static_cast<Plant*>(temp);
 					if(!p->getAlive())
@@ -691,7 +810,7 @@ void GameWindow::doGeneration()
 	for(uint i = GameObject::generation > -10 ? 0 : 0; i<GameObject::objects.size();i++)
 	{
 		GameObject* temp = GameObject::objects[i];
-		if(temp->getName() == GROUND || temp->getName() == PLANT || temp->getName() == MEAT)
+		if(temp->getName() == GROUND || temp->getName() == PLANT || temp->getName() == MEAT || temp->getName() == SHELTER)
 		{
 			temp->nextGeneration();
 		}
@@ -720,6 +839,22 @@ void GameWindow::doGeneration()
 						GameObject::monsters.erase(GameObject::monsters.begin()+j);
 					}
 				}
+
+				for(unsigned int x = 0; x < GameObject::cluster.size(); x++)
+				{
+					for(unsigned int y = 0; y < GameObject::cluster[x].size(); y++)
+					{
+						for(unsigned int z = 0; z < GameObject::cluster[x][y].size(); z++)
+						{
+							GameObject* temp = GameObject::cluster[x][y][z];
+							if(temp == GameObject::objects[i])
+							{
+								GameObject::cluster[x][y][z] = nullptr;
+								GameObject::cluster[x][y].erase(GameObject::cluster[x][y].begin()+z);
+							}
+						}
+					}
+				}
 				delete(GameObject::objects[i]);
 				GameObject::objects[i] = nullptr;
 				GameObject::objects.erase(GameObject::objects.begin()+i);
@@ -740,6 +875,7 @@ void GameWindow::doGeneration()
 				{
 					int foundPlant = 0;
 					bool foundLand = false;
+					bool foundWater = false;
 					rx = (rand()%120)*8;
 					ry = (rand()%120)*8;
 					for(unsigned int i = 0; i < GameObject::objects.size(); i++)
@@ -753,21 +889,28 @@ void GameWindow::doGeneration()
 						}
 						if(GameObject::objects[i]->getName() == GROUND)
 						{
-							if(std::abs(GameObject::objects[i]->getX() - rx) == 0 && std::abs(GameObject::objects[i]->getY() - ry) == 0)
+							if(std::abs(GameObject::objects[i]->getX() - rx) <= 0 && std::abs(GameObject::objects[i]->getY() - ry) <= 0)
 							{
 								Ground* g = static_cast<Ground*>(GameObject::objects[i]);
 								if(g->getBiome() != WATER && g->getBiome() != FRESHWATER)
 								{
 									foundLand = true;
+									foundWater = false;
+								}
+								else if(g->getBiome() == WATER || g->getBiome() == FRESHWATER)
+								{
+									foundLand = false;
+									foundWater = true;
 								}
 							}
 						}
 					}
-					if (foundLand && Species::monsterSpecies[c].land && foundPlant>10)
+					if (foundLand && Species::monsterSpecies[c].land &&
+							((!Species::monsterSpecies[c].enemy && foundPlant>12) || (Species::monsterSpecies[c].enemy && foundPlant>4)))
 					{
 						created = true;
 					}
-					if(!foundLand && !Species::monsterSpecies[c].land)
+					if(foundWater && !Species::monsterSpecies[c].land && foundPlant>2)
 					{
 						created = true;
 					}
@@ -846,9 +989,33 @@ void GameWindow::doMove()
 
 	genPhase = END_PHASE;
 }
+
+int GameWindow::getShelterButton()
+{
+	if(clickedShelterButton)
+	{
+		return shelterButton;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+void GameWindow::finishClick()
+{
+	clickedShelterButton = false;
+	shelterButton = 0;
+}
+
 void GameWindow::runUI()
 {
 	//if(GameObject::generation > -1)
+	if(clickUI(SHELTER_X,SHELTER_Y,128,32) && !UI::isOpen())
+	{
+		cout << SHELTER_X << "HEY THERE" << endl;
+		clickedShelterButton = true;
+	}
 	if(clickUI(NEXT_GEN_X,NEXT_GEN_Y,128,32) && !UI::isOpen())
 	{
 		if(genPhase == MOVE_PHASE)
@@ -868,7 +1035,6 @@ void GameWindow::runUI()
 		{
 			generationing = true;
 			render();
-			doGeneration();
 		}
 	}
 	if(!UI::isOpen())
@@ -905,7 +1071,7 @@ void GameWindow::generatePlants()
 	{
 		PlantSpecies sp;
 		sp.lifespan = (rand()%6)+1;
-		sp.minDeath = 1;
+		sp.minDeath = 0;
 		sp.maxDeath = 2;
 		sp.minNew = 0;
 		sp.maxNew = 4;
@@ -1143,7 +1309,7 @@ void GameWindow::tutorialMessages()
 	if(GameObject::generation == 30 && !tutorial[99])
 	{
 		messageBox.enable("Behaviors"
-				"/Congrats at surviving until Gen 30!"
+				"/Congrats at surviving until Turn 30!"
 				"/You have unlocked MONSTER BEHAVIORS!"
 				"//"
 				"To use behaviors, you need to scroll past/"
@@ -1161,6 +1327,11 @@ void GameWindow::tutorialMessages()
 				"information about it.");
 		tutorial[1] = true;
 	}
+}
+
+void GameWindow::setShelterButton(int buttonVal)
+{
+	shelterButton = buttonVal;
 }
 
 

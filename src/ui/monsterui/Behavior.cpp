@@ -25,6 +25,17 @@ void Behavior::init(Texture2D iTexture,std::vector<std::string> iText)
 	text = iText;
 }
 
+void Behavior::setTexture(bool tex)
+{
+	altTexture = tex;
+}
+
+void Behavior::setAltTexture(Texture2D iTexture,std::vector<std::string> iText)
+{
+	texture2 = iTexture;
+	altText = iText;
+}
+
 bool Behavior::getClicking(int nx, int ny, int wx, int wy)
 {
 
@@ -69,22 +80,22 @@ void Behavior::render()
 	{
 		if(status == 0)
 		{
-			DrawTexture(texture,x,y,WHITE);
+			DrawTexture(altTexture ? texture2 : texture,x,y,WHITE);
 		}
 		else if(status == 1)
 		{
 			std::cout << "doy" << std::endl;
-			DrawTexture(texture,x,y,YELLOW);
+			DrawTexture(altTexture ? texture2 : texture,x,y,YELLOW);
 		}
 		else if(status == 2)
 		{
 			std::cout << "doy" << std::endl;
-			DrawTexture(texture,x,y,{0,255,255,255});
+			DrawTexture(altTexture ? texture2 : texture,x,y,{0,255,255,255});
 		}
 		else if(status == 3)
 		{
 			std::cout << "doy" << std::endl;
-			DrawTexture(texture,x,y,RED);
+			DrawTexture(altTexture ? texture2 : texture,x,y,RED);
 		}
 	}
 }
@@ -106,7 +117,7 @@ void Behavior::setStatus(int iStatus)
 
 std::vector<std::string> Behavior::getText()
 {
-	return text;
+	return altTexture ? altText : text;
 }
 
 

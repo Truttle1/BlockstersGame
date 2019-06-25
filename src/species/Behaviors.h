@@ -31,6 +31,8 @@ class Behaviors
 
 		static const int SHELTER_1 = 14;
 		static const int SHELTER_2 = 15;
+
+		static const int SENTIENCE = 16;
 };
 
 

@@ -9,8 +9,8 @@ src/GameWindow.o: ../src/GameWindow.cpp ../src/GameWindow.h \
  ../src/objects/world/../../img/ObjectColors.h \
  ../src/objects/world/../../img/../libraries/raylib.h \
  ../src/objects/world/Plant.h ../src/objects/world/Monster.h \
+ ../src/objects/world/Shelter.h ../src/objects/world/../../GameWindow.h \
  ../src/objects/world/../../img/MonsterImg.h \
- ../src/objects/world/../../GameWindow.h \
  ../src/objects/world/../EyeCandy.h ../src/objects/world/../GameObject.h \
  ../src/objects/world/../../ui/UI.h \
  ../src/objects/world/../../ui/../libraries/raylib.h \
@@ -33,6 +33,7 @@ src/GameWindow.o: ../src/GameWindow.cpp ../src/GameWindow.h \
  ../src/ui/fileui/../../objects/GameObject.h \
  ../src/ui/fileui/../../objects/world/Ground.h \
  ../src/ui/fileui/../../objects/world/Monster.h \
+ ../src/ui/fileui/../../objects/world/Shelter.h \
  ../src/ui/fileui/../monsterui/TextBox.h ../src/ui/MessageBox.h
 
 ../src/GameWindow.h:
@@ -69,9 +70,11 @@ src/GameWindow.o: ../src/GameWindow.cpp ../src/GameWindow.h \
 
 ../src/objects/world/Monster.h:
 
-../src/objects/world/../../img/MonsterImg.h:
+../src/objects/world/Shelter.h:
 
 ../src/objects/world/../../GameWindow.h:
+
+../src/objects/world/../../img/MonsterImg.h:
 
 ../src/objects/world/../EyeCandy.h:
 
@@ -140,6 +143,8 @@ src/GameWindow.o: ../src/GameWindow.cpp ../src/GameWindow.h \
 ../src/ui/fileui/../../objects/world/Ground.h:
 
 ../src/ui/fileui/../../objects/world/Monster.h:
+
+../src/ui/fileui/../../objects/world/Shelter.h:
 
 ../src/ui/fileui/../monsterui/TextBox.h:
 

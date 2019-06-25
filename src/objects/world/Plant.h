@@ -12,6 +12,7 @@
 #include "../../species/Species.h"
 #include "Ground.h"
 #include "../../img/ObjectColors.h"
+#include <cmath>
 class Plant:public GameObject
 {
 	public:
@@ -49,6 +50,7 @@ class Plant:public GameObject
 		Biome getBiome();
 		Biome curBiome;
 		void removeFog();
+		double distanceToPlayer();
 };
 
 #endif /* OBJECTS_WORLD_PLANT_H_ */

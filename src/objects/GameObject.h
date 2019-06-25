@@ -19,7 +19,7 @@ typedef unsigned int uint;
 	#define OBJECTS_GAMEOBJECT_H_
 	#include "Fog.h"
 	typedef enum Biome{WATER,DIRT,BEACH,DESERT,GRASS,JUNGLE,TUNDRA,MOUNTAIN,SNOW,FRESHWATER,NIL} Biome;
-	typedef enum ObjectType{PLANT,GROUND,MONSTER,MEAT,EYECANDY} ObjectType;
+	typedef enum ObjectType{PLANT,GROUND,MONSTER,MEAT,EYECANDY,SHELTER} ObjectType;
 	class GameObject {
 		public:
 			GameObject(int ix, int iy,int w, int h);
@@ -44,6 +44,7 @@ typedef unsigned int uint;
 			static void setGroundArray(GameObject* groundArray[60][60]);
 			static vector<GameObject*> objects;
 			static vector<GameObject*> monsters;
+			static vector<GameObject*> shelters;
 			static GameObject* groundArray[60][60];
 			static int generation;
 			static Font font;
@@ -57,7 +58,9 @@ typedef unsigned int uint;
 			int stretchSize = 1;
 		protected:
 			static int evolutionOccuredYet;
+			static int evolutionOccuredYetWater;
 			static int evolutionOccuredYetMonst;
+			static int evolutionOccuredYetMonstWater;
 			int x = 0;
 			int y = 0;
 			int width = 0;

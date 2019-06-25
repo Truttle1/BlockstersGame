@@ -17,7 +17,7 @@ src/ui/fileui/FileUI.o: ../src/ui/fileui/FileUI.cpp \
  ../src/ui/fileui/../../objects/world/../../img/ObjectColors.h \
  ../src/ui/fileui/../../objects/world/../../img/../libraries/raylib.h \
  ../src/ui/fileui/../../objects/world/Monster.h \
- ../src/ui/fileui/../../objects/world/../../img/MonsterImg.h \
+ ../src/ui/fileui/../../objects/world/Shelter.h \
  ../src/ui/fileui/../../objects/world/../../GameWindow.h \
  ../src/ui/fileui/../../objects/world/../../libraries/raylib.h \
  ../src/ui/fileui/../../objects/world/../../objects/GameObject.h \
@@ -49,9 +49,11 @@ src/ui/fileui/FileUI.o: ../src/ui/fileui/FileUI.cpp \
  ../src/ui/fileui/../../objects/world/../../objects/world/../GameObject.h \
  ../src/ui/fileui/../../objects/world/../../ui/fileui/FileUI.h \
  ../src/ui/fileui/../../objects/world/../../ui/MessageBox.h \
+ ../src/ui/fileui/../../objects/world/../../img/MonsterImg.h \
  ../src/ui/fileui/../../objects/world/../EyeCandy.h \
  ../src/ui/fileui/../../objects/world/../../ui/UI.h \
  ../src/ui/fileui/../../objects/world/../../species/Behaviors.h \
+ ../src/ui/fileui/../../objects/world/Shelter.h \
  ../src/ui/fileui/../monsterui/TextBox.h \
  ../src/ui/fileui/../../img/MonsterImg.h
 
@@ -93,7 +95,7 @@ src/ui/fileui/FileUI.o: ../src/ui/fileui/FileUI.cpp \
 
 ../src/ui/fileui/../../objects/world/Monster.h:
 
-../src/ui/fileui/../../objects/world/../../img/MonsterImg.h:
+../src/ui/fileui/../../objects/world/Shelter.h:
 
 ../src/ui/fileui/../../objects/world/../../GameWindow.h:
 
@@ -157,11 +159,15 @@ src/ui/fileui/FileUI.o: ../src/ui/fileui/FileUI.cpp \
 
 ../src/ui/fileui/../../objects/world/../../ui/MessageBox.h:
 
+../src/ui/fileui/../../objects/world/../../img/MonsterImg.h:
+
 ../src/ui/fileui/../../objects/world/../EyeCandy.h:
 
 ../src/ui/fileui/../../objects/world/../../ui/UI.h:
 
 ../src/ui/fileui/../../objects/world/../../species/Behaviors.h:
+
+../src/ui/fileui/../../objects/world/Shelter.h:
 
 ../src/ui/fileui/../monsterui/TextBox.h:
 

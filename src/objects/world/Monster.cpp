@@ -9,6 +9,7 @@
 #include <algorithm>
 Monster::Monster(int ix, int iy, int sp, bool e) : GameObject(ix,iy,8,8)
 {
+	wasClicked = false;
 	alive = true;
 	name = MONSTER;
 	species = sp;
@@ -20,7 +21,7 @@ Monster::Monster(int ix, int iy, int sp, bool e) : GameObject(ix,iy,8,8)
 	targetY = -1;
 	movementStage = 0;
 	moved = false;
-	hp = Species::monsterSpecies[species].metabolism+Species::monsterSpecies[species].size;
+	hp = Species::monsterSpecies[species].metabolism+1;
 	monster = Species::monsterSpecies[this->species];
 	hasEaten = false;
 	mouseX = 0;
@@ -32,6 +33,24 @@ Monster::Monster(int ix, int iy, int sp, bool e) : GameObject(ix,iy,8,8)
 	if(monster.metabolism < monster.size/2 && monster.enemy)
 	{
 		Species::monsterSpecies[species].metabolism = monster.size/2;
+	}
+	clusterX = (x / 16) / 6;
+	clusterY = (y / 16) / 6;
+	//std::cout << clusterX << "," << clusterY << endl;
+	if(!enemy && monster.behaviors[Behaviors::SHELTER_1] && !GameWindow::tutorial[5])
+	{
+		GameWindow::getMessageBox()->enable("Shelters/"
+				"Your newest monster, " + monster.name +
+				",/is able to build SHELTERS!//"
+				"Shelters protect your monsters from/"
+				"the outside. To create one, you click the/"
+				"\"Create Shelter\" button on the sidebar.//"
+				"Monsters will often need to bring food/"
+				"to shelters, otherwise they run out/"
+				"and starve. By clicking a shelter, you/"
+				"can have a monster leave it. If you place/"
+				"a monster on top of a shelter, it may/enter.");
+		GameWindow::tutorial[5] = true;
 	}
 }
 
@@ -47,10 +66,12 @@ void Monster::loadFromFile(int iAge, int iHp, int population)
 	targetY = -1;
 
 }
+
 Monster::~Monster()
 {
 
 }
+
 int Monster::getPopulation()
 {
 	return arbitraryPopNumber;
@@ -58,6 +79,10 @@ int Monster::getPopulation()
 
 void Monster::tick()
 {
+	if(!alive)
+	{
+		return;
+	}
 	getClicking();
 	if(clickedHere && !UI::isOpen())
 	{
@@ -87,15 +112,20 @@ void Monster::tick()
 				GameWindow::tutorial[1] = true;
 			}
 		}
-		if(poison == 0 && alive)
+		if(poison == 0 && alive && !UI::isOpen())
 		{
 			GameWindow::showUpperText(monster.name + "    " + rivalStatus + "    Group of " + to_string(arbitraryPopNumber) +
-								"\nHP: " + to_string(hp) + "    Movements Left: " + to_string(monster.speed - movementStage)+ "    Age: " + to_string(age));
+								"\nFOOD: " + to_string(hp) + "    Movements Left: " + to_string(monster.speed - movementStage)+ "    Age: " + to_string(age));
 		}
-		else
+		else if(!UI::isOpen())
 		{
 			GameWindow::showUpperText(monster.name + "    " + rivalStatus + "    Group of " + to_string(arbitraryPopNumber) +
-								"\nHP: " + to_string(hp) + "    Movements Left: " + to_string(monster.speed - movementStage)+ "    POISON: -" + to_string(poison) + " HP/Gen");
+								"\nFOOD: " + to_string(hp) + "    Movements Left: " + to_string(monster.speed - movementStage)+ "    POISON: -" + to_string(poison) + " HP/Gen");
+		}
+
+		if(monster.behaviors[Behaviors::SHELTER_1])
+		{
+			onShelter();
 		}
 	}
 	if(clickedHere)
@@ -113,7 +143,7 @@ void Monster::tick()
 	if(clickedHere && !enemy)
 	{
 		removeFog();
-		if(monster.carnivore)
+		if(monster.carnivore || monster.behaviors[Behaviors::WEAPON_1])
 		{
 			for(unsigned int i=3600; i<GameObject::objects.size();i++)
 			{
@@ -125,20 +155,87 @@ void Monster::tick()
 						hp += m->eat()+4;
 					}
 				}
+				if(!killed && GameObject::objects[i] != this && GameObject::objects[i]->getName() == MONSTER && monster.behaviors[Behaviors::WEAPON_1])
+				{
+					Monster* m = static_cast<Monster*>(GameObject::objects[i]);
+					if(CheckCollisionRecs(m->getBounds(),this->getBounds()) && m->getSpecies() != species)
+					{
+						MonsterSpecies ms = Species::monsterSpecies[m->getSpecies()];
+						if(m->isEnemy() || isEnemy())
+						{
+							if(monster.strength > ms.resil)
+							{
+								EyeCandy* ec;
+								if(!isEnemy())
+								{
+									ec = new EyeCandy(m->getX(),m->getY(),0);
+								}
+								else if(!m->isEnemy())
+								{
+									ec = new EyeCandy(m->getX(),m->getY(),1);
+								}
+								else
+								{
+									ec = new EyeCandy(m->getX(),m->getY(),2);
+								}
+								objects.push_back(new Meat(m->getX(),m->getY(),Species::monsterSpecies[m->getSpecies()].size+1,m->getSpecies()));
+								objects.push_back(ec);
+								m->kill();
+								killed = true;
+							}
+							else if(monster.resil < ms.strength)
+							{
+								EyeCandy* ec;
+								if(!isEnemy())
+								{
+									ec = new EyeCandy(getX(),getY(),2);
+								}
+								else if(!m->isEnemy())
+								{
+									ec = new EyeCandy(getX(),getY(),1);
+								}
+								else
+								{
+									ec = new EyeCandy(getX(),getY(),0);
+								}
+								objects.push_back(new Meat(getX(),getY(),Species::monsterSpecies[m->getSpecies()].size+1,m->getSpecies()));
+								objects.push_back(ec);
+								kill();
+								killed = true;
+							}
+						}
+					}
+				}
+
 			}
+
 		}
 		if(IsKeyPressed(KEY_DELETE))
 		{
 			kill();
 		}
+
 		if(targetX == -1 && targetY == -1 && movementStage < monster.speed && moved)
 		{
+			if(monster.behaviors[Behaviors::SHELTER_1])
+			{
+				if(onShelter())
+				{
+					GameWindow::setShelterButton(2);
+				}
+				else
+				{
+					GameWindow::setShelterButton(1);
+				}
+			}
+
 			if(IsKeyPressed(KEY_W))
 			{
 				targetX = x;
 				targetY = y-8;
 				moved = false;
 				movementStage++;
+				killed = false;
 			}
 			if(IsKeyPressed(KEY_A))
 			{
@@ -146,6 +243,7 @@ void Monster::tick()
 				targetY = y;
 				moved = false;
 				movementStage++;
+				killed = false;
 			}
 			if(IsKeyPressed(KEY_S))
 			{
@@ -153,6 +251,7 @@ void Monster::tick()
 				targetY = y+8;
 				moved = false;
 				movementStage++;
+				killed = false;
 			}
 			if(IsKeyPressed(KEY_D))
 			{
@@ -160,6 +259,26 @@ void Monster::tick()
 				targetY = y;
 				moved = false;
 				movementStage++;
+				killed = false;
+			}
+			if(monster.behaviors[Behaviors::SHELTER_1])
+			{
+				if(IsKeyPressed(KEY_H) || GameWindow::getShelterButton() == 1)
+				{
+					createShelter();
+					if(GameWindow::getShelterButton() > -1)
+					{
+						GameWindow::finishClick();
+					}
+				}
+				if(IsKeyPressed(KEY_E) || GameWindow::getShelterButton() == 2)
+				{
+					enterShelter();
+					if(GameWindow::getShelterButton() > -1)
+					{
+						GameWindow::finishClick();
+					}
+				}
 			}
 
 		}
@@ -210,6 +329,12 @@ void Monster::tick()
 
 		}
 	}
+
+	if(wasClicked && !clickedHere)
+	{
+		GameWindow::setShelterButton(0);
+	}
+	wasClicked = clickedHere;
 }
 
 bool Monster::getClicking()
@@ -223,11 +348,11 @@ bool Monster::getClicking()
 		mouseX = mx;
 		mouseY = my;
 		clicking = (mx >= x && my >= y && mx <= x+width && my <= y+height);
-		if(clicking)
+		if(clicking && GetMouseX() < 480)
 		{
 			clickedHere = true;
 		}
-		else
+		else if(GetMouseX() < 480)
 		{
 			clickedHere = false;
 		}
@@ -237,6 +362,10 @@ bool Monster::getClicking()
 
 void Monster::render()
 {
+	if(!alive)
+	{
+		return;
+	}
 	if(flashTime < 15 && clickedHere)
 	{
 		DrawRectangle(x,y,8,8,GREEN);
@@ -321,6 +450,8 @@ void Monster::render()
 
 void Monster::nextGeneration()
 {
+	killSameLocation();
+	killed = false;
 	movementStage = 0;
 	hasEaten = false;
 	bool onLand = true;
@@ -329,6 +460,18 @@ void Monster::nextGeneration()
 	x = (x/8)*8;
 	y = (y/8)*8;
 	moved = true;
+
+	if(monster.behaviors[Behaviors::SHELTER_1] && shelterX == -1 && enemy)
+	{
+		if(rand()%100 < 50 && hp > monster.metabolism * 1.5)
+		{
+			createShelter();
+		}
+		if(rand()%100 < 74 && onShelter())
+		{
+			enterShelter();
+		}
+	}
 
 	for(uint i = 0; i<GameObject::objects.size();i++)
 	{
@@ -343,13 +486,14 @@ void Monster::nextGeneration()
 					onLand = false;
 				}
 			}
+			biome = g2->getBiome();
 		}
 	}
 	if(!enemy)
 	{
 		removeFog();
 	}
-	if(!hasEaten)
+	if(!hasEaten && (hp < monster.size * 2 || monster.behaviors[Behaviors::SHELTER_1]))
 	{
 		if(!monster.carnivore)
 		{
@@ -377,7 +521,7 @@ void Monster::nextGeneration()
 	int repValue = rand()%40;
 	int gn = getNeighborhood();
 	//Reproduce
-	if(hp >= monster.size && age >= 2 && gn<=monster.maxNew && gn>=monster.minNew && repValue<30)
+	if(hp >= monster.metabolism * 1.5 && age >= 2 && gn<=monster.maxNew && gn>=monster.minNew && repValue<30)
 	{
 		int newX = ((rand()%5)*8)-16;
 		int newY = ((rand()%5)*8)-16;
@@ -398,10 +542,33 @@ void Monster::nextGeneration()
 		{
 			randNum = 100;
 		}
-		if(rand()%2000<200 && monster.enemy && alive && evolutionOccuredYetMonst <  1)
+		if(monster.evolvePass >= 0 && rand()%2000<50 && monster.enemy && alive)
 		{
-			evolve();
-			evolutionOccuredYetMonst++;
+			if(evolutionOccuredYetMonst <  1 && monster.land)
+			{
+				evolve();
+				evolutionOccuredYetMonst++;
+			}
+			else if(evolutionOccuredYetMonstWater <  1 && !monster.land)
+			{
+
+				evolve();
+				evolutionOccuredYetMonstWater++;
+			}
+		}
+		if(false && generation < 10 && objects.size() < 6000 && rand()%8000<4000/(getRemovedFog()+1) && alive && distanceToPlayer() < 256)
+		{
+			if(evolutionOccuredYetMonst <  1 && monster.land)
+			{
+				evolve();
+				evolutionOccuredYetMonst++;
+			}
+			else if(evolutionOccuredYetMonstWater <  1 && !monster.land)
+			{
+
+				evolve();
+				evolutionOccuredYetMonstWater++;
+			}
 		}
 	}
 	if(x<0 || x>=960)
@@ -412,7 +579,24 @@ void Monster::nextGeneration()
 	{
 		this->kill();
 	}
-	if((!monster.behaviors[Behaviors::SWALK_1]) || (monster.behaviors[Behaviors::SWALK_1] && rand()%100<50) )
+	if(monster.behaviors[Behaviors::SWALK_1] && biome == FRESHWATER)
+	{
+
+	}
+	else if((!monster.behaviors[Behaviors::SWALK_1]) || (monster.behaviors[Behaviors::SWALK_1] && !monster.behaviors[Behaviors::SWALK_2] && rand()%100<50) )
+	{
+		if(!monster.land && onLand)
+		{
+			this->kill();
+			//printf("LAND IS BAD\nSPECIES %d HAS LAND VALUE OF %d\n",this->species,Species::plantSpecies[this->species].land);
+		}
+		else if(monster.land && !onLand)
+		{
+			this->kill();
+			//printf("WATER IS BAD\nSPECIES %d HAS LAND VALUE OF %d\n",this->species,Species::plantSpecies[this->species].land);
+		}
+	}
+	else if(monster.behaviors[Behaviors::SWALK_2] && rand()%100<75)
 	{
 		if(!monster.land && onLand)
 		{
@@ -426,7 +610,7 @@ void Monster::nextGeneration()
 		}
 	}
 	//die when they live longer than their lifespan.
-	if(age>monster.lifespan)
+	if(age>monster.lifespan && rand()%100 < 50)
 	{
 		this->kill();
 	}
@@ -458,9 +642,9 @@ void Monster::nextGeneration()
 int Monster::getNeighborhood()
 {
 	int c = 0;
-	for(uint i = 0; i<GameObject::objects.size();i++)
+	for(uint i = 0; i<GameObject::monsters.size();i++)
 	{
-		GameObject* temp = GameObject::objects[i];
+		GameObject* temp = GameObject::monsters[i];
 		int distX = std::abs((this->getX())-(temp->getX()));
 		int distY = std::abs((this->getY())-(temp->getY()));
 		if(distX <= 8 && distY <= 8 && temp != this && temp->getName() == MONSTER)
@@ -525,6 +709,10 @@ void Monster::nextMove()
 		}
 		if(targetX == -1 && targetY == -1)
 		{
+			if(targetX == -1  && shelterX != -1 && (hp > 3*monster.metabolism) && monster.behaviors[Behaviors::SHELTER_1])
+			{
+				shelterMovement();
+			}
 			if(targetX == -1 && ((!monster.carnivore && hp < monster.size+(2*monster.metabolism)) || rand()%amountOfOptions<=3) && monster.behaviors[Behaviors::TO_PLANTS])
 			{
 				plantsMovement();
@@ -593,6 +781,36 @@ void Monster::nextMove()
 		targetX = -1;
 		targetY = -1;
 	}
+
+	if(monster.behaviors[Behaviors::WEAPON_2])
+	{
+		for(unsigned int i = 0; i < GameObject::shelters.size(); i++)
+		{
+			Shelter* shelt = static_cast<Shelter*>(GameObject::shelters[i]);
+			if(CheckCollisionRecs(shelt->getBounds(),getBounds()) && shelt->getType() == 0)
+			{
+				if(Species::monsterSpecies[shelt->getSpecies()].resil < monster.strength && (Species::monsterSpecies[shelt->getSpecies()].enemy || isEnemy()))
+				{
+					EyeCandy* ec;
+					if(!isEnemy())
+					{
+						ec = new EyeCandy(shelt->getX(),shelt->getY(),0);
+					}
+					else if(Species::monsterSpecies[shelt->getSpecies()].enemy)
+					{
+						ec = new EyeCandy(shelt->getX(),shelt->getY(),2);
+					}
+					else
+					{
+						ec = new EyeCandy(shelt->getX(),shelt->getY(),1);
+					}
+					shelt->kill();
+					objects.push_back(ec);
+				}
+			}
+
+		}
+	}
 	if(monster.carnivore || monster.behaviors[Behaviors::WEAPON_1])
 	{
 		//cout << "CARNIVORE" << endl;
@@ -606,7 +824,7 @@ void Monster::nextMove()
 					hp += m->eat();
 				}
 			}
-			if(GameObject::objects[i] && GameObject::objects[i]->getName() == MEAT && monster.behaviors[Behaviors::WEAPON_1])
+			if(!killed && GameObject::objects[i] != this && GameObject::objects[i]->getName() == MONSTER && monster.behaviors[Behaviors::WEAPON_1])
 			{
 				Monster* m = static_cast<Monster*>(GameObject::objects[i]);
 				if(CheckCollisionRecs(m->getBounds(),this->getBounds()) && m->getSpecies() != species)
@@ -632,25 +850,27 @@ void Monster::nextMove()
 							objects.push_back(new Meat(m->getX(),m->getY(),Species::monsterSpecies[m->getSpecies()].size+1,m->getSpecies()));
 							objects.push_back(ec);
 							m->kill();
+							killed = true;
 						}
 						else if(monster.resil < ms.strength)
 						{
 							EyeCandy* ec;
 							if(!isEnemy())
 							{
-								ec = new EyeCandy(m->getX(),m->getY(),2);
+								ec = new EyeCandy(getX(),getY(),2);
 							}
 							else if(!m->isEnemy())
 							{
-								ec = new EyeCandy(m->getX(),m->getY(),1);
+								ec = new EyeCandy(getX(),getY(),1);
 							}
 							else
 							{
-								ec = new EyeCandy(m->getX(),m->getY(),0);
+								ec = new EyeCandy(getX(),getY(),0);
 							}
 							objects.push_back(new Meat(getX(),getY(),Species::monsterSpecies[m->getSpecies()].size+1,m->getSpecies()));
 							objects.push_back(ec);
 							kill();
+							killed = true;
 						}
 					}
 				}
@@ -664,18 +884,22 @@ void Monster::nextMove()
 		poison = 0;
 	}
 }
+
 void Monster::nextEat()
 {
 
 }
+
 bool Monster::getAlive()
 {
 	return alive;
 }
+
 int Monster::getSpecies()
 {
 	return species;
 }
+
 void Monster::kill()
 {
 	if(alive)
@@ -684,9 +908,37 @@ void Monster::kill()
 		Species::monsterSpecies[species].population -= arbitraryPopNumber;
 	}
 }
+
 void Monster::killSameLocation()
 {
+	if(enemy && objects.size() > 10000)
+	{
+		for(unsigned int i = 0; i < objects.size(); i++)
+		{
+			if(objects[i]->getName() == MONSTER && objects[i] != this && objects[i]->getX() == x && objects[i]->getY() == y)
+			{
+				Monster* tempMonster = static_cast<Monster*>(objects[i]);
+				if(Species::monsterSpecies[tempMonster->getSpecies()].size > monster.size)
+				{
+					alive = false;
+				}
+				else if(tempMonster->getHP() > hp)
+				{
+					alive = false;
+				}
+				else if(rand()%100 < 50)
+				{
+					alive = false;
+				}
+				else
+				{
+					tempMonster->kill();
+				}
+			}
+		}
+	}
 }
+
 void Monster::removeFog()
 {
 	int normX = x/16;
@@ -707,10 +959,12 @@ void Monster::removeFog()
 		GameObject::fog[normX+1][normY+1].disable();
 	}
 }
+
 bool Monster::isMoving()
 {
 	return !moved;
 }
+
 void Monster::selectRandomTarget()
 {
 	if(targetX == -1)
@@ -724,6 +978,7 @@ void Monster::selectRandomTarget()
 		targetY += (-1+(rand()%3))*8;
 	}
 }
+
 void Monster::eatPlant(Plant* p)
 {
 	PlantSpecies plant = Species::plantSpecies[p->getSpecies()];
@@ -738,7 +993,7 @@ void Monster::eatPlant(Plant* p)
 			}
 		}
 	}
-	else if(plant.toxicity-2 > monster.size)
+	else if(plant.toxicity-2 > monster.resil)
 	{
 		poison += (plant.toxicity-monster.size);
 	}
@@ -763,34 +1018,34 @@ void Monster::evolve()
 	int lifespan = monster.lifespan;
 	int agression = monster.agression;
 	bool carnivore = monster.carnivore;
-
-	if(rand()%100<20)
+	monster.evolvePass = -2;
+	if(rand()%100<40)
 	{
 		carnivore = !carnivore;
 	}
 
-	if(rand()%100<20)
+	if(rand()%100<40)
 	{
 		minNew--;
 		maxNew++;
 		lifespan--;
 	}
-	else if(maxNew-minNew > 1 && rand()%100<20)
+	else if(maxNew-minNew > 1 && rand()%100<40)
 	{
 		minNew++;
-		maxNew--;
+		maxNew++;
 		lifespan+=2;
 	}
-	if(rand()%100<20)
+	if(rand()%100<40)
 	{
 		minDeath--;
 		maxDeath++;
 		lifespan--;
 	}
-	else if(maxDeath-minDeath > 1 && rand()%100<20)
+	else if(maxDeath-minDeath > 1 && rand()%100<40)
 	{
 		minDeath++;
-		maxDeath--;
+		maxDeath++;
 		lifespan+=2;
 	}
 
@@ -834,12 +1089,20 @@ void Monster::evolve()
 	if(rand()%100<50)
 	{
 		strength += 2;
-		resil--;
 	}
 	if(rand()%100<50)
 	{
 		resil += 2;
-		strength--;
+	}
+
+	size += 1;
+	if(rand()%100<30)
+	{
+		strength -= 1;
+	}
+	if(rand()%100<30)
+	{
+		resil -= 1;
 	}
 
 	if(minNew<0)
@@ -921,6 +1184,8 @@ void Monster::evolve()
 	{
 		newSp.agression += 4;
 	}
+
+
 	newSp.image = monster.image;
 	newSp.name = Species::generateName();
 	newSp.bodyColor = monster.bodyColor;
@@ -928,17 +1193,9 @@ void Monster::evolve()
 	newSp.highlightColor = monster.highlightColor;
 	newSp.enemy = true;
 
-	for(int i=0; i<100; i++)
-	{
-		newSp.behaviors[i] = monster.behaviors[i];
-		if(rand()%100<15)
-		{
-			newSp.behaviors[i] = false;
-		}
-	}
 	bool replacedImage = false;
 	replacedImage = true;
-	if(newSp.size < 3)
+	if(newSp.size < 2)
 	{
 
 		if(rand()%5<=2)
@@ -954,7 +1211,7 @@ void Monster::evolve()
 			newSp.image = MonsterImg::miniscule2;
 		}
 	}
-	else if(newSp.size < 8)
+	else if(newSp.size < 4)
 	{
 
 		if(rand()%5<=2)
@@ -1007,62 +1264,128 @@ void Monster::evolve()
 		}
 	}
 
+	for(int i=0; i<100; i++)
+	{
+		newSp.behaviors[i] = monster.behaviors[i];
+		if(rand()%100<15)
+		{
+			newSp.behaviors[i] = false;
+		}
+	}
+
+	//BEHAVIORS
+	if(monster.behaviors[Behaviors::SHELTER_1])
+	{
+		newSp.behaviors[Behaviors::SHELTER_1] = true;
+	}
+	if(monster.behaviors[Behaviors::SHELTER_2])
+	{
+		newSp.behaviors[Behaviors::SHELTER_2] = true;
+	}
+	if(monster.behaviors[Behaviors::WEAPON_1])
+	{
+		newSp.behaviors[Behaviors::WEAPON_1] = true;
+	}
+	if(monster.behaviors[Behaviors::WEAPON_2])
+	{
+		newSp.behaviors[Behaviors::WEAPON_2] = true;
+	}
 	if(GameObject::generation > -1)
 	{
-		if(!monster.behaviors[0] && !monster.behaviors[1])
+		if(!monster.behaviors[Behaviors::RUN_MONSTERS] && !monster.behaviors[Behaviors::TO_MONSTERS])
 		{
 			if(rand()%100 < 40)
 			{
-				newSp.behaviors[0] = true;
+				newSp.behaviors[Behaviors::RUN_MONSTERS] = true;
 			}
 			else if(rand()%100 < 40)
 			{
-				newSp.behaviors[1] = true;
+				newSp.behaviors[Behaviors::TO_MONSTERS] = true;
 			}
 		}
-		if(!monster.behaviors[2] && !monster.behaviors[3])
+		if(!monster.behaviors[Behaviors::SPREAD] && !monster.behaviors[Behaviors::TOGETHER])
 		{
 			if(rand()%100 < 40)
 			{
-				newSp.behaviors[2] = true;
+				newSp.behaviors[Behaviors::SPREAD] = true;
 			}
 			else if(rand()%100 < 40)
 			{
-				newSp.behaviors[3] = true;
+				newSp.behaviors[Behaviors::TOGETHER] = true;
 			}
 		}
-		if(monster.behaviors[0] || monster.behaviors[1])
+		if(monster.behaviors[Behaviors::RUN_MONSTERS] || monster.behaviors[Behaviors::TO_MONSTERS])
 		{
-			if(!monster.behaviors[4] && !monster.behaviors[5])
+			if(!monster.behaviors[Behaviors::TO_PLANTS] && !monster.behaviors[Behaviors::TO_MEAT])
 			{
 				if(rand()%100 < 40)
 				{
-					newSp.behaviors[4] = true;
+					newSp.behaviors[Behaviors::TO_PLANTS] = true;
 				}
 				else if(rand()%100 < 40)
 				{
-					newSp.behaviors[5] = true;
+					newSp.behaviors[Behaviors::TO_MEAT] = true;
 				}
 			}
 		}
-		if(monster.behaviors[4])
+		if(monster.behaviors[Behaviors::TO_PLANTS])
 		{
-			if(!monster.behaviors[6])
+			if(!monster.behaviors[Behaviors::AWAY_MEAT])
 			{
-				newSp.behaviors[6] = true;
+				newSp.behaviors[Behaviors::AWAY_MEAT] = true;
 			}
 		}
 		if(newSp.carnivore && rand()%100<75)
 		{
-			newSp.behaviors[5] = true;
+			newSp.behaviors[Behaviors::TO_MEAT] = true;
 		}
 		if(!newSp.carnivore && rand()%100<75)
 		{
-			newSp.behaviors[5] = false;
+			newSp.behaviors[Behaviors::TO_MEAT] = false;
 		}
-		if(newSp.strength >= 5 && newSp.complexity >= 4)
+		if(!newSp.behaviors[Behaviors::WEAPON_1] && newSp.agression > 5)
 		{
-			newSp.behaviors[Behaviors::WEAPON_1] = true;
+			if(generation > 35)
+			{
+				newSp.behaviors[Behaviors::WEAPON_1] = true;
+				if(newSp.strength < 5)
+				{
+					newSp.strength = 7;
+				}
+			}
+		}
+		else if(newSp.behaviors[Behaviors::WEAPON_1] && newSp.agression > 7)
+		{
+			if(generation > 45)
+			{
+				newSp.behaviors[Behaviors::WEAPON_2] = true;
+				if(newSp.strength < 9)
+				{
+					newSp.strength = 9;
+				}
+			}
+		}
+		else if(newSp.resil > 4 && !newSp.behaviors[Behaviors::SHELTER_1])
+		{
+			if(newSp.complexity >= 3 && (generation > 40))
+			{
+				newSp.behaviors[Behaviors::SHELTER_1] = true;
+			}
+		}
+		else if(newSp.resil > 4)
+		{
+			if(newSp.complexity >= 3 && (generation > 50))
+			{
+				newSp.behaviors[Behaviors::SHELTER_2] = true;
+			}
+		}
+	}
+
+	if(generation > 20)
+	{
+		if(rand()%100<50)
+		{
+			newSp.behaviors[Behaviors::SWALK_1] = true;
 		}
 	}
 
@@ -1094,13 +1417,27 @@ void Monster::evolve()
 	else
 	{
 	}
+
+	if(newSp.size > (generation/10)+3)
+	{
+		newSp.size = (generation/10)+3;
+	}
+
+	if(newSp.maxDeath > 5)
+	{
+		newSp.maxDeath = 5;
+	}
+	if(newSp.maxNew > 5)
+	{
+		newSp.maxNew = 5;
+	}
 	Species::monsterSpecies.push_back(newSp);
 	int newX = ((rand()%5)*8)-16;
 	int newY = ((rand()%5)*8)-16;
 	Monster* p = new Monster(this->getX()+newX,this->getY()+newY,Species::monsterSpecies.size()-1,true);
 	GameObject::objects.push_back(p);
 	GameObject::monsters.push_back(p);
-	int r = rand()%2;
+	int r = rand()%3;
 	for(int i=0; i<(r)+1;i++)
 	{
 		newX = ((rand()%6)*8)-32;
@@ -1119,6 +1456,7 @@ void Monster::evolve()
 		GameObject::monsters.push_back(p3);
 	}
 }
+
 void Monster::attackMonsters()
 {
 	Monster* m;
@@ -1216,6 +1554,7 @@ void Monster::attackMonsters()
 		}
 	}
 }
+
 bool Monster::isEnemy()
 {
 	return enemy;
@@ -1243,6 +1582,7 @@ int Monster::distanceToFrom(int ex, int ey, int sx, int sy)
 
 void Monster::closeFarMovement()
 {
+	cout << "CloseFar" << endl;
 	selectRandomTarget();
 	if(monster.behaviors[0])
 	{
@@ -1335,7 +1675,7 @@ void Monster::closeFarMovement()
 void Monster::groupingMovement()
 {
 	selectRandomTarget();
-	cout << "HERE" << endl;
+	cout << "Group" << endl;
 	if(monster.behaviors[2])
 	{
 		Monster* closestMonster = NULL;
@@ -1357,7 +1697,7 @@ void Monster::groupingMovement()
 				}
 			}
 		}
-		for(int i=0; i<100; i++)
+		for(int i=0; i<8; i++)
 		{
 			if(!closestMonster)
 			{
@@ -1392,7 +1732,7 @@ void Monster::groupingMovement()
 				}
 			}
 		}
-		for(int i=0; i<100; i++)
+		for(int i=0; i<8; i++)
 		{
 			if(!closestMonster)
 			{
@@ -1412,16 +1752,17 @@ void Monster::groupingMovement()
 void Monster::plantsMovement()
 {
 	selectRandomTarget();
+	cout << "Plants" << endl;
 	Plant* closestPlant = NULL;
 	int shortestDist = 99999;
-	for(unsigned int i=0; i<GameObject::objects.size(); i++)
+	for(unsigned int i=0; i<GameObject::cluster[clusterX][clusterY].size(); i++)
 	{
 		if(objects[i]->getName() == PLANT)
 		{
-			Plant* plnt = static_cast<Plant*>(objects[i]);
+			Plant* plnt = static_cast<Plant*>(GameObject::cluster[clusterX][clusterY][i]);
 			if(Species::plantSpecies[plnt->getSpecies()].land == monster.land)
 			{
-				int dist = std::abs(distanceToFrom(objects[i]->getX(),objects[i]->getY(),x,y));
+				int dist = std::abs(distanceToFrom(plnt->getX(),plnt->getY(),x,y));
 
 				if(shortestDist > dist)
 				{
@@ -1447,8 +1788,39 @@ void Monster::plantsMovement()
 	}
 }
 
+
+void Monster::shelterMovement()
+{
+	cout << "Shelter" << endl;
+	if(x == shelterX && y == shelterY)
+	{
+		if(!onShelter())
+		{
+			createShelter();
+		}
+		else
+		{
+			cout << "Let's Go In" << endl;
+			enterShelter();
+		}
+	}
+	for(int i=0; i<100; i++)
+	{
+		targetX = -1;
+		targetY = -1;
+		selectRandomTarget();
+		if(std::abs(distanceToFrom(shelterX,shelterY,x,y)) > std::abs(distanceToFrom(shelterX,shelterY,targetX,targetY)))
+		{
+			break;
+		}
+	}
+
+
+}
+
 void Monster::meatMovement()
 {
+	cout << "Meat" << endl;
 	selectRandomTarget();
 	Meat* closestMeat = NULL;
 	int shortestDist = 99999;
@@ -1497,3 +1869,92 @@ void Monster::meatMovement()
 		}
 	}
 }
+
+double Monster::distanceToPlayer()
+{
+	double dist = 99999999;
+	for(unsigned int i = 0; i < monsters.size(); i++)
+	{
+		Monster* m = static_cast<Monster*>(monsters[i]);
+		if(!m->isEnemy() && m != this)
+		{
+			double tempDist = std::sqrt(std::pow(x-m->getX(),2) + std::pow(x-m->getY(),2));
+			if(tempDist < dist)
+			{
+				dist = tempDist;
+			}
+		}
+	}
+	return dist;
+}
+
+void Monster::setShelterLoc(int ix, int iy)
+{
+	shelterX = ix;
+	shelterY = iy;
+}
+
+void Monster::createShelter()
+{
+	int newPop = 0;
+	if(getPopulation() > hp)
+	{
+		newPop = rand()%((hp/2)+2);
+	}
+	else
+	{
+		newPop = getPopulation();
+	}
+	int type = 0;
+	if(monster.behaviors[Behaviors::SHELTER_2])
+	{
+		type = 1;
+	}
+	Shelter* s = new Shelter(x,y,species,type,hp,(newPop/2)+1);
+	objects.push_back(s);
+	shelters.push_back(s);
+	alive = false;
+	Species::monsterSpecies[species].population -= arbitraryPopNumber;
+}
+
+void Monster::enterShelter()
+{
+	for(unsigned int i = 0; i < shelters.size(); i++)
+	{
+		if(shelters[i]->getX() == x && shelters[i]->getY() == y)
+		{
+			if(shelters[i]->getName() == SHELTER)
+			{
+				Shelter* shelter = static_cast<Shelter*>(shelters[i]);
+				if(shelter->getSpecies() == species)
+				{
+					shelter->add(hp,getPopulation());
+					alive = false;
+					Species::monsterSpecies[species].population -= arbitraryPopNumber;
+					break;
+				}
+			}
+		}
+	}
+}
+
+bool Monster::onShelter()
+{
+	for(unsigned int i = 0; i < shelters.size(); i++)
+	{
+		if(shelters[i]->getX() == x && shelters[i]->getY() == y)
+		{
+			if(shelters[i]->getName() == SHELTER)
+			{
+				Shelter* shelter = static_cast<Shelter*>(shelters[i]);
+				if(shelter->getSpecies() == species && shelter->getAlive())
+				{
+					shelter->deClick();
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+

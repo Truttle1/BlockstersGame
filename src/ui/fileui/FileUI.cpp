@@ -293,6 +293,7 @@ bool FileUI::load(std::string filename)
 			ps.name = result[11];
 			ps.population = 0;
 			ps.lifespan = stoi(result[13]);
+			ps.evolvePass = stoi(result[14]);
 			cout << "IMAGE" << endl;
 			ps.image.height = 8;
 			ps.image.width = 8;
@@ -345,6 +346,7 @@ bool FileUI::load(std::string filename)
 			printf("carn\n");
 			ms.carnivore = stoi(result[19]);
 			ms.complexity = stoi(result[20]);
+			ms.evolvePass = stoi(result[21]);
 			Species::monsterSpecies.push_back(ms);
 		}
 		if(result[0].find("GROUND") != string::npos)
@@ -367,6 +369,14 @@ bool FileUI::load(std::string filename)
 			Meat* g = new Meat(stoi(result[1]),stoi(result[2]),stoi(result[3]),stoi(result[4]));
 			GameObject::objects.push_back(g);
 		}
+
+		if(result[0].find("SHELTER") != string::npos)
+		{
+			Shelter* g = new Shelter(stoi(result[1]),stoi(result[2]),stoi(result[3]),stoi(result[4]),stoi(result[5]),stoi(result[6]));
+			GameObject::objects.push_back(g);
+			GameObject::shelters.push_back(g);
+		}
+
 		if(result[0].find("MONSTER") != string::npos)
 		{
 			Monster* g = new Monster(stoi(result[1]),stoi(result[2]),stoi(result[3]),stoi(result[7]));
@@ -546,6 +556,8 @@ void FileUI::save(std::string filename)
 			file << to_string(Species::plantSpecies[i].population);
 			file << ",";
 			file << to_string(Species::plantSpecies[i].lifespan);
+			file << ",";
+			file << to_string(Species::plantSpecies[i].evolvePass);
 			file << "\n";
 
 			file << "P_COLOR0";
@@ -655,6 +667,8 @@ void FileUI::save(std::string filename)
 			file << to_string(Species::monsterSpecies[i].carnivore);
 			file << ",";
 			file << to_string(Species::monsterSpecies[i].complexity);
+			file << ",";
+			file << to_string(Species::monsterSpecies[i].evolvePass);
 			file << "\n";
 
 			file << "M_COLOR0";
@@ -799,6 +813,24 @@ void FileUI::save(std::string filename)
 				file << to_string(g->getPopulation()).c_str();
 				file << ",";
 				file << to_string(g->isEnemy()).c_str();
+				file << "\n";
+			}
+
+			if(GameObject::objects[i]->getName() == SHELTER)
+			{
+				Shelter* g = static_cast<Shelter*>(GameObject::objects[i]);
+				file << "SHELTER,";
+				file << to_string(g->getX()).c_str();
+				file << ",";
+				file << to_string(g->getY()).c_str();
+				file << ",";
+				file << to_string(g->getSpecies()).c_str();
+				file << ",";
+				file << to_string(g->getType()).c_str();
+				file << ",";
+				file << to_string(g->getFood()).c_str();
+				file << ",";
+				file << to_string(g->getPopulation()).c_str();
 				file << "\n";
 			}
 		}

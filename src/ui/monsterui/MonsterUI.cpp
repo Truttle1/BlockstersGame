@@ -355,7 +355,7 @@ void MonsterUI::drawEditScreen()
 		immuneSystemButton.render();
 		DrawTextEx(font,"Fertility:",{48,256},24.0f,0.0f,BLACK);
 		DrawTextEx(font,"Immune System:",{48,332},24.0f,0.0f,BLACK);
-		std::string ls = "Lives for " + std::to_string(lifespanUpdate) + " gen.";
+		std::string ls = "Lives for " + std::to_string(lifespanUpdate) + " turns.";
 		std::string rw = "Reproduces w/" + std::to_string(minNewUpdate) + "-" +
 				std::to_string(maxNewUpdate);
 		std::string sw = "Survives w/ " + std::to_string(minDeathUpdate) + "-" +
@@ -372,7 +372,7 @@ void MonsterUI::drawEditScreen()
 		sizeButton2.render();
 		DrawTextEx(font,"Toxicity / Size:",{48,256},24.0f,0.0f,BLACK);
 		DrawTextEx(font,"Lifespan / Size:",{48,332},24.0f,0.0f,BLACK);
-		std::string ls = "Lives for " + std::to_string(lifespanUpdate) + " gen.";
+		std::string ls = "Lives for " + std::to_string(lifespanUpdate) + " turns.";
 		DrawTextEx(font,ls.c_str(),{284,250},24.0f,0.0f,BLACK);
 		std::string tx = "Toxicity: " + std::to_string(toxicityUpdate) + " HP.";
 
@@ -434,10 +434,10 @@ void MonsterUI::drawEditScreen()
 		speedButton.render();
 		DrawTextEx(font,"Speed:",{48,256},24.0f,0.0f,BLACK);
 		DrawTextEx(font,"Strength / Resiliance:",{48,332},24.0f,0.0f,BLACK);
-		std::string sp = "Speed:" + std::to_string(speedUpdate) + " tiles/gen.";
+		std::string sp = "Speed:" + std::to_string(speedUpdate) + " tiles/turn.";
 		std::string st = "Strength:" + std::to_string(strengthUpdate) + " HP";
 		std::string de = "Defense:" + std::to_string(resilUpdate) + " HP";
-		std::string me = "Needs:" + std::to_string(metaUpdate) + " ntrnts/gen";
+		std::string me = "Needs:" + std::to_string(metaUpdate) + " HP/turn";
 		DrawTextEx(font,sp.c_str(),{284,250},24.0f,0.0f,BLACK);
 		DrawTextEx(font,st.c_str(),{284,280},24.0f,0.0f,BLACK);
 		DrawTextEx(font,de.c_str(),{284,320},24.0f,0.0f,BLACK);
@@ -1008,7 +1008,7 @@ void MonsterUI::drawStats()
 		tox += "Insanely Toxic";
 	}
 	DrawTextEx(font,siz.c_str(),{16,252},24.0f,0.0f,BLACK);
-	std::string ls = "Lives for " + std::to_string(Species::monsterSpecies[curViewing].lifespan) + " generations.";
+	std::string ls = "Lives for " + std::to_string(Species::monsterSpecies[curViewing].lifespan) + " turns.";
 	DrawTextEx(font,ls.c_str(),{16,272},24.0f,0.0f,BLACK);
 	std::string sur = "Survives with " + std::to_string(Species::monsterSpecies[curViewing].minDeath) + +"-"+ std::to_string(Species::monsterSpecies[curViewing].maxDeath) + " neighbors.";
 	DrawTextEx(font,sur.c_str(),{16,292},24.0f,0.0f,BLACK);
@@ -1018,9 +1018,9 @@ void MonsterUI::drawStats()
 	DrawTextEx(font,strength.c_str(),{16,332},24.0f,0.0f,BLACK);
 	std::string resil = "Defense: " + std::to_string(Species::monsterSpecies[curViewing].resil) + ".";
 	DrawTextEx(font,resil.c_str(),{16,352},24.0f,0.0f,BLACK);
-	std::string spd = "Moves " + std::to_string(Species::monsterSpecies[curViewing].speed) + " tiles per generation.";
+	std::string spd = "Moves " + std::to_string(Species::monsterSpecies[curViewing].speed) + " tiles per turn.";
 	DrawTextEx(font,spd.c_str(),{16,372},24.0f,0.0f,BLACK);
-	std::string met = "Requires " + std::to_string(Species::monsterSpecies[curViewing].metabolism) + " nutrients per generation.";
+	std::string met = "Requires " + std::to_string(Species::monsterSpecies[curViewing].metabolism) + " nutrients per turn.";
 	DrawTextEx(font,met.c_str(),{16,392},24.0f,0.0f,BLACK);
 	if(Species::monsterSpecies[curViewing].carnivore)
 	{
@@ -1036,17 +1036,28 @@ void MonsterUI::clickLeft()
 	{
 		index--;
 	}
+	else
+	{
+		if(lookingAtPlayer)
+		{
+			index = Species::plMonstersDiscovered.size()-1;
+		}
+		if(!lookingAtPlayer)
+		{
+			index = Species::monstersDiscovered.size()-1;
+		}
+	}
 }
 void MonsterUI::clickRight()
 {
 	index++;
 	if(index>=Species::plMonstersDiscovered.size() && lookingAtPlayer)
 	{
-		index = Species::plMonstersDiscovered.size()-1;
+		index = 0;
 	}
 	if(index>=Species::monstersDiscovered.size() && !lookingAtPlayer)
 	{
-		index = Species::monstersDiscovered.size()-1;
+		index = 0;
 	}
 }
 
@@ -1159,40 +1170,37 @@ void MonsterUI::initBehaviors()
 
 	Behavior swim1 = Behavior(128,384,3);
 	addTexts.clear();
-	if(Species::monsterSpecies[0].land)
-	{
-		addTexts.push_back("This monster will");
-		addTexts.push_back("be able to swim.");
-		addTexts.push_back("");
-	}
-	else
-	{
-		addTexts.push_back("This monster will");
-		addTexts.push_back("be able to walk on");
-		addTexts.push_back("land.");
-	}
+	addTexts.push_back("This monster will");
+	addTexts.push_back("be able to swim.");
+	addTexts.push_back("");
 	addTexts.push_back("");
 	addTexts.push_back("Cost: 3 Pts");
 	swim1.init(LoadTexture("src/img/ui/behaviors/swim1.png"),addTexts);
+	addTexts.clear();
+	addTexts.push_back("This monster will");
+	addTexts.push_back("be able to walk on");
+	addTexts.push_back("land.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 3 Pts");
+	swim1.setAltTexture(LoadTexture("src/img/ui/behaviors/walk1.png"),addTexts);
+
 	behaviors.push_back(swim1);
 
 	Behavior swim2 = Behavior(144,384,4);
 	addTexts.clear();
-	if(Species::monsterSpecies[0].land)
-	{
-		addTexts.push_back("This monster will");
-		addTexts.push_back("be able to swim.");
-		addTexts.push_back("");
-	}
-	else
-	{
-		addTexts.push_back("This monster will");
-		addTexts.push_back("be able to walk on");
-		addTexts.push_back("land.");
-	}
+	addTexts.push_back("This monster will");
+	addTexts.push_back("be able to swim.");
+	addTexts.push_back("");
 	addTexts.push_back("");
 	addTexts.push_back("Cost: 4 Pts");
 	swim2.init(LoadTexture("src/img/ui/behaviors/swim2.png"),addTexts);
+	addTexts.clear();
+	addTexts.push_back("This monster will");
+	addTexts.push_back("be able to walk on");
+	addTexts.push_back("land.");
+	addTexts.push_back("");
+	addTexts.push_back("Cost: 4 Pts");
+	swim2.setAltTexture(LoadTexture("src/img/ui/behaviors/walk2.png"),addTexts);
 	behaviors.push_back(swim2);
 
 	Behavior weapons1 = Behavior(128,304,3);
@@ -1233,6 +1241,17 @@ void MonsterUI::initBehaviors()
 	addTexts.push_back("Cost: 12 Pts");
 	shelters2.init(LoadTexture("src/img/ui/behaviors/shelters2.png"),addTexts);
 	behaviors.push_back(shelters2);
+
+	Behavior civilization = Behavior(160,320,16);
+	addTexts.clear();
+	addTexts.push_back("This monster will");
+	addTexts.push_back("gain sentience");
+	addTexts.push_back("and begin a");
+	addTexts.push_back("civilization.");
+	addTexts.push_back("Cost: 16 Pts");
+	civilization.init(LoadTexture("src/img/ui/behaviors/sentience.png"),addTexts);
+	behaviors.push_back(civilization);
+
 }
 
 void MonsterUI::getBehaveAllowed()
@@ -1282,30 +1301,54 @@ void MonsterUI::getBehaveAllowed()
 		behaviors[9].enable();
 	}
 
-	if(Species::monsterSpecies[curViewing].complexity >= 3)
+	if(Species::monsterSpecies[curViewing].complexity >= 3 && GameObject::generation > 50)
 	{
 		if(Species::monsterSpecies[curViewing].strength > 4)
 		{
 			behaviors[Behaviors::WEAPON_1].enable();
 		}
-		if(Species::monsterSpecies[curViewing].resil > 7)
+		if(Species::monsterSpecies[curViewing].resil > 5)
 		{
 			behaviors[Behaviors::SHELTER_1].enable();
 		}
 	}
 
+	if(behaviors[Behaviors::SWALK_1].getStatus() >= 2)
+	{
+		behaviors[Behaviors::SWALK_2].enable();
+	}
+	behaviors[Behaviors::SWALK_1].setTexture(!Species::monsterSpecies[curViewing].land);
+	behaviors[Behaviors::SWALK_2].setTexture(!Species::monsterSpecies[curViewing].land);
 
-	if(behaviors[Behaviors::SHELTER_1].getStatus() >= 2 && Species::monsterSpecies[curViewing].complexity >= 9)
+	if(behaviors[Behaviors::SHELTER_1].getStatus() >= 2 && Species::monsterSpecies[curViewing].complexity >= 3)
 	{
 		behaviors[Behaviors::SHELTER_2].enable();
 		behaviors[Behaviors::WEAPON_1].enable();
 	}
 
-	if(behaviors[Behaviors::WEAPON_1].getStatus() >= 2  && Species::monsterSpecies[curViewing].complexity >= 7)
+	if(behaviors[Behaviors::WEAPON_1].getStatus() >= 2  && Species::monsterSpecies[curViewing].complexity >= 3)
 	{
 		behaviors[Behaviors::WEAPON_2].enable();
 		behaviors[Behaviors::SHELTER_1].enable();
 	}
+
+	if(behaviors[Behaviors::SHELTER_1].getStatus() >= 2)
+	{
+		int amountOfShelters = 0;
+		for(unsigned int i = 0; i < Species::monsterSpecies.size(); i++)
+		{
+			if(Species::monsterSpecies[i].enemy && Species::monsterSpecies[i].population > 20 && Species::monsterSpecies[i].behaviors[Behaviors::SHELTER_1])
+			{
+				amountOfShelters++;
+			}
+		}
+		if(amountOfShelters >= 5)
+		{
+			behaviors[Behaviors::SENTIENCE].enable();
+		}
+
+	}
+
 	if(editing &&  Species::monsterSpecies[curViewing].complexity >= 2)
 	{
 		behaviors[10].enable();

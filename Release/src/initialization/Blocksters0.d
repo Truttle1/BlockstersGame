@@ -18,8 +18,9 @@ src/initialization/Blocksters0.o: ../src/initialization/Blocksters0.cpp \
  ../src/initialization/../objects/world/../../img/../libraries/raylib.h \
  ../src/initialization/../objects/world/Plant.h \
  ../src/initialization/../objects/world/Monster.h \
- ../src/initialization/../objects/world/../../img/MonsterImg.h \
+ ../src/initialization/../objects/world/Shelter.h \
  ../src/initialization/../objects/world/../../GameWindow.h \
+ ../src/initialization/../objects/world/../../img/MonsterImg.h \
  ../src/initialization/../objects/world/../EyeCandy.h \
  ../src/initialization/../objects/world/../GameObject.h \
  ../src/initialization/../objects/world/../../ui/UI.h \
@@ -54,6 +55,7 @@ src/initialization/Blocksters0.o: ../src/initialization/Blocksters0.cpp \
  ../src/initialization/../ui/fileui/../../objects/GameObject.h \
  ../src/initialization/../ui/fileui/../../objects/world/Ground.h \
  ../src/initialization/../ui/fileui/../../objects/world/Monster.h \
+ ../src/initialization/../ui/fileui/../../objects/world/Shelter.h \
  ../src/initialization/../ui/fileui/../monsterui/TextBox.h \
  ../src/initialization/../ui/MessageBox.h
 
@@ -95,9 +97,11 @@ src/initialization/Blocksters0.o: ../src/initialization/Blocksters0.cpp \
 
 ../src/initialization/../objects/world/Monster.h:
 
-../src/initialization/../objects/world/../../img/MonsterImg.h:
+../src/initialization/../objects/world/Shelter.h:
 
 ../src/initialization/../objects/world/../../GameWindow.h:
+
+../src/initialization/../objects/world/../../img/MonsterImg.h:
 
 ../src/initialization/../objects/world/../EyeCandy.h:
 
@@ -166,6 +170,8 @@ src/initialization/Blocksters0.o: ../src/initialization/Blocksters0.cpp \
 ../src/initialization/../ui/fileui/../../objects/world/Ground.h:
 
 ../src/initialization/../ui/fileui/../../objects/world/Monster.h:
+
+../src/initialization/../ui/fileui/../../objects/world/Shelter.h:
 
 ../src/initialization/../ui/fileui/../monsterui/TextBox.h:
 

@@ -19,7 +19,7 @@ src/ui/monsterui/MonsterUI.o: ../src/ui/monsterui/MonsterUI.cpp \
  ../src/ui/monsterui/../../objects/world/Ground.h \
  ../src/ui/monsterui/../../objects/world/../../img/ObjectColors.h \
  ../src/ui/monsterui/../../objects/world/../../img/../libraries/raylib.h \
- ../src/ui/monsterui/../../objects/world/../../img/MonsterImg.h \
+ ../src/ui/monsterui/../../objects/world/Shelter.h \
  ../src/ui/monsterui/../../objects/world/../../GameWindow.h \
  ../src/ui/monsterui/../../objects/world/../../libraries/raylib.h \
  ../src/ui/monsterui/../../objects/world/../../objects/GameObject.h \
@@ -48,8 +48,10 @@ src/ui/monsterui/MonsterUI.o: ../src/ui/monsterui/MonsterUI.cpp \
  ../src/ui/monsterui/../../objects/world/../../ui/fileui/../../objects/GameObject.h \
  ../src/ui/monsterui/../../objects/world/../../ui/fileui/../../objects/world/Ground.h \
  ../src/ui/monsterui/../../objects/world/../../ui/fileui/../../objects/world/Monster.h \
+ ../src/ui/monsterui/../../objects/world/../../ui/fileui/../../objects/world/Shelter.h \
  ../src/ui/monsterui/../../objects/world/../../ui/fileui/../monsterui/TextBox.h \
  ../src/ui/monsterui/../../objects/world/../../ui/MessageBox.h \
+ ../src/ui/monsterui/../../objects/world/../../img/MonsterImg.h \
  ../src/ui/monsterui/../../objects/world/../EyeCandy.h \
  ../src/ui/monsterui/../../objects/world/../../ui/UI.h \
  ../src/ui/monsterui/../../objects/world/../../species/Behaviors.h \
@@ -99,7 +101,7 @@ src/ui/monsterui/MonsterUI.o: ../src/ui/monsterui/MonsterUI.cpp \
 
 ../src/ui/monsterui/../../objects/world/../../img/../libraries/raylib.h:
 
-../src/ui/monsterui/../../objects/world/../../img/MonsterImg.h:
+../src/ui/monsterui/../../objects/world/Shelter.h:
 
 ../src/ui/monsterui/../../objects/world/../../GameWindow.h:
 
@@ -157,9 +159,13 @@ src/ui/monsterui/MonsterUI.o: ../src/ui/monsterui/MonsterUI.cpp \
 
 ../src/ui/monsterui/../../objects/world/../../ui/fileui/../../objects/world/Monster.h:
 
+../src/ui/monsterui/../../objects/world/../../ui/fileui/../../objects/world/Shelter.h:
+
 ../src/ui/monsterui/../../objects/world/../../ui/fileui/../monsterui/TextBox.h:
 
 ../src/ui/monsterui/../../objects/world/../../ui/MessageBox.h:
+
+../src/ui/monsterui/../../objects/world/../../img/MonsterImg.h:
 
 ../src/ui/monsterui/../../objects/world/../EyeCandy.h:
 

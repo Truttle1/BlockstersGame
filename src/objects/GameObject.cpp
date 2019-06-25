@@ -10,6 +10,7 @@
 
 vector<GameObject*> GameObject::objects;
 vector<GameObject*> GameObject::monsters;
+vector<GameObject*> GameObject::shelters;
 vector<vector<vector<GameObject*>>> GameObject::cluster(15, vector<vector<GameObject*>> (15));
 GameObject* GameObject::groundArray[60][60];
 Fog GameObject::fog[60][60];
@@ -17,8 +18,10 @@ int GameObject::internalClock = 0;
 int GameObject::generation = -15;
 int GameObject::worldMouseX = 0;
 int GameObject::worldMouseY = 0;
-int GameObject::evolutionOccuredYet = false;
+int GameObject::evolutionOccuredYet = 0;
+int GameObject::evolutionOccuredYetWater = 0;
 int GameObject::evolutionOccuredYetMonst = 0;
+int GameObject::evolutionOccuredYetMonstWater = 0;
 Font GameObject::font;
 
 	GameObject::GameObject(int ix, int iy,int w, int h)
@@ -96,8 +99,10 @@ Font GameObject::font;
 	}
 	void GameObject::resetEvolution()
 	{
-		evolutionOccuredYet = false;
-		evolutionOccuredYetMonst = false;
+		evolutionOccuredYet = 0;
+		evolutionOccuredYetWater = 0;
+		evolutionOccuredYetMonst = 0;
+		evolutionOccuredYetMonstWater = 0;
 	}
 
 	void GameObject::unClick()

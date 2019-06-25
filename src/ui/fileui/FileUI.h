@@ -12,6 +12,7 @@
 #include "../../objects/GameObject.h"
 #include "../../objects/world/Ground.h"
 #include "../../objects/world/Monster.h"
+#include "../../objects/world/Shelter.h"
 #include "../monsterui/TextBox.h"
 #include <fstream>
 #include <sstream>

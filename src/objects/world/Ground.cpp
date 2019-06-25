@@ -59,7 +59,7 @@ void Ground::setupFreshWaterGraphics(Texture2D* fwImg0,Texture2D* fwImg1)
 }
 void Ground::tick()
 {
-	if(internalClock<LENGTH_OF_CREATE && (biome == WATER || biome == FRESHWATER))
+	if(internalClock<LENGTH_OF_CREATE && (biome == WATER || biome == FRESHWATER) && !alreadyLoaded)
 	{
 		createTime++;
 		createNewLand();
@@ -82,11 +82,11 @@ void Ground::tick()
 	}
 	if(biome == WATER || biome == FRESHWATER)
 	{
-		if(this->internalClock%60==30)
+		if(this->internalClock%(GetFPS()+1)==GetFPS()/2)
 		{
 			this->animationFrame = 1;
 		}
-		if(this->internalClock%60==0)
+		if(this->internalClock%(GetFPS()+1)==0)
 		{
 			this->animationFrame = 0;
 		}

@@ -155,7 +155,7 @@ void PlantUI::drawStats()
 	}
 
 	DrawTextEx(font,siz.c_str(),{16,252},24.0f,0.0f,BLACK);
-	std::string ls = "Lives for " + std::to_string(Species::plantSpecies[curViewing].lifespan) + " generations.";
+	std::string ls = "Lives for " + std::to_string(Species::plantSpecies[curViewing].lifespan) + " turns.";
 	DrawTextEx(font,ls.c_str(),{16,272},24.0f,0.0f,BLACK);
 	std::string sur = "Survives with " + std::to_string(Species::plantSpecies[curViewing].minDeath) + +"-"+ std::to_string(Species::plantSpecies[curViewing].maxDeath) + " neighbors.";
 	DrawTextEx(font,sur.c_str(),{16,292},24.0f,0.0f,BLACK);

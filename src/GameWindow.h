@@ -36,7 +36,7 @@
 using namespace std;
 class GameWindow {
 
-	typedef enum {TITLE_SCREEN,GAME_SCREEN} GameMode;
+	typedef enum {TITLE_SCREEN,SELECTION_SCREEN,GAME_SCREEN} GameMode;
 public:
 	GameWindow();
 	virtual ~GameWindow();
@@ -58,6 +58,10 @@ public:
 	static std::string getFileName();
 	static MessageBox* getMessageBox();
 	static bool tutorial[100];
+	static void setShelterButton(int buttonVal);
+	static int getShelterButton();
+	static void finishClick();
+
 
 private:
 	void gameTick();
@@ -66,6 +70,10 @@ private:
 	void titleScreenRender();
 	void gameDrawGUI();
 	void titleScreenDrawGUI();
+	void selectionTick();
+	void selectionRender();
+	void selectionDrawGUI();
+
 	static GameMode gameMode;
 	GameObject* groundArray[60][60];
 	static std::string fileName;
@@ -109,6 +117,10 @@ private:
 	static int points;
 	const int NEXT_GEN_X = 496;
 	const int NEXT_GEN_Y = 432;
+
+	const int SHELTER_X = 496;
+	const int SHELTER_Y = 360;
+
 	const int MOVE_PHASE = 0;
 	const int END_PHASE = 1;
 	int genPhase = 0;
@@ -140,6 +152,10 @@ private:
 	void tutorialMessages();
 	void getPointIncrease();
 	bool generationing = false;
+
+	int delay = 0;
+	static int shelterButton;
+	static bool clickedShelterButton;
 
 
 };

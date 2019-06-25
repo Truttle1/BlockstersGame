@@ -24,12 +24,17 @@ public:
 	void setStatus(int iStatus);
 	int getCost();
 	std::vector<std::string> getText();
+	void setTexture(bool tex);
+	void setAltTexture(Texture2D iTexture,std::vector<std::string> iText);
 private:
 	bool getClicking(int nx, int ny, int wx, int wy);
 	int status;
+	bool altTexture = false;
 	Texture2D texture;
+	Texture2D texture2;
 	bool visible = false;
 	std::vector<std::string> text;
+	std::vector<std::string> altText;
 	int x;
 	int y;
 	int cost;

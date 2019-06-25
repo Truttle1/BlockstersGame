@@ -10,6 +10,7 @@
 
 #include "../GameObject.h"
 #include "Plant.h"
+#include "Shelter.h"
 #include "../../img/MonsterImg.h"
 #include "../../GameWindow.h"
 #include "../EyeCandy.h"
@@ -36,6 +37,7 @@ class Monster:public GameObject {
 		int getAge();
 		int getPopulation();
 		void setPoison(int amount);
+		void setShelterLoc(int ix, int iy);
 	private:
 		int getNeighborhood();
 		void killSameLocation();
@@ -50,6 +52,12 @@ class Monster:public GameObject {
 		void groupingMovement();
 		void plantsMovement();
 		void meatMovement();
+		void shelterMovement();
+		double distanceToPlayer();
+		int distanceToFrom(int ex, int ey, int sx, int sy);
+		void createShelter();
+		void enterShelter();
+		bool onShelter();
 		bool hasEaten;
 		int species;
 		bool alive = true;
@@ -66,8 +74,15 @@ class Monster:public GameObject {
 		int mouseY;
 		int flashTime;
 		bool clickedHere;
+		bool killed = false;
 		int poison = 0;
-		int distanceToFrom(int ex, int ey, int sx, int sy);
+		int clusterX;
+		int clusterY;
+		Biome biome = DIRT;
+		int shelterX = -1;
+		int shelterY = -1;
+		bool wasClicked;
+
 };
 
 #endif /* OBJECTS_WORLD_Object_H_ */
