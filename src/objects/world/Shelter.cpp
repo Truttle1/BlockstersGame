@@ -25,7 +25,7 @@ Shelter::Shelter(int ix, int iy, int iSpecies, int iType, int iFood, int iPop) :
 	exitTime = 0;
 	clickedHere = false;
 	enemy = Species::monsterSpecies[species].enemy;
-	Species::monsterSpecies[species].population += iPop;
+	addedPop = false;
 }
 
 Shelter::~Shelter()
@@ -62,6 +62,12 @@ void Shelter::tick()
 	{
 		alive = false;
 	}
+	if(!addedPop)
+	{
+
+		Species::monsterSpecies[species].population += population;
+		addedPop = true;
+	}
 	if(!alive)
 	{
 		return;
@@ -70,6 +76,8 @@ void Shelter::tick()
 	{
 		if(population > 20)
 		{
+			int remove = population - 20;
+			Species::monsterSpecies[species].population -= remove;
 			population = 20;
 		}
 	}
@@ -77,6 +85,8 @@ void Shelter::tick()
 	{
 		if(population > 30)
 		{
+			int remove = population - 30;
+			Species::monsterSpecies[species].population -= remove;
 			population = 30;
 		}
 	}
@@ -130,6 +140,7 @@ void Shelter::exit()
 	m->loadFromFile(0,Species::monsterSpecies[species].metabolism*2,popVal);
 	m->setShelterLoc(x,y);
 	objects.push_back(m);
+	monsters.push_back(m);
 }
 
 void Shelter::render()
@@ -177,8 +188,8 @@ void Shelter::render()
 
 void Shelter::nextGeneration()
 {
-	int foodRemove = Species::monsterSpecies[species].metabolism * ((population/Species::monsterSpecies[species].groupSize)+1);
-	food -= foodRemove;
+	int foodRemove = Species::monsterSpecies[species].metabolism * ((population/(Species::monsterSpecies[species].groupSize+1))+1);
+	food -= 1;
 
 	if(food < 0)
 	{

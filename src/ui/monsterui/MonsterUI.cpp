@@ -197,7 +197,7 @@ void MonsterUI::tick()
 			clickRight();
 			setupBehaveIcons();
 		}
-		if(getClicking(editButtonX,editButtonY,82,32) && Species::monsterSpecies[curViewing].population > 0)
+		if(lookingAtPlayer && getClicking(editButtonX,editButtonY,82,32) && Species::monsterSpecies[curViewing].population > 0)
 		{
 			viewingBehaviors = false;
 			birthChanceButton.reset();

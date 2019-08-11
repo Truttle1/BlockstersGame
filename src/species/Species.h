@@ -57,7 +57,7 @@ typedef struct MonsterSpecies
 
 	int strength;
 	int resil;
-	int evolvePass;
+	int evolvePass = 0;
 
 	Texture2D image;
 	int population = 0;

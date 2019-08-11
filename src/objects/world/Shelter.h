@@ -46,6 +46,7 @@ class Shelter:public GameObject
 		int flashTime;
 		bool wasClicked;
 		int exitTime;
+		bool addedPop;
 };
 
 #endif /* OBJECTS_WORLD_SHELTER_H_ */

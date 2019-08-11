@@ -388,18 +388,7 @@ void Monster::render()
 		if(poison > 0)
 		{
 			DrawRectangle(x,y,8,8,{128,64,128,255});
-			if(!GameWindow::tutorial[4] && GameObject::generation >= 5 )
-			{
-				GameWindow::getMessageBox()->enable("Poison/"
-						"If you notice a purple background around/"
-						"a monster, that means it is POISONED.//"
-						"To avoid this, try evolving your/"
-						"monster to have a higher defense,/"
-						"looking in the species menu to,/"
-						"find anything toxic, or avoiding/"
-						"getting into battles.");
-				GameWindow::tutorial[4] = true;
-			}
+
 		}
 		else
 		{
@@ -418,6 +407,18 @@ void Monster::render()
 		if(poison > 0)
 		{
 			DrawRectangle(x,y,8,8,{200,0,200,255});
+			if(!GameWindow::tutorial[4] && GameObject::generation >= 5 )
+			{
+				GameWindow::getMessageBox()->enable("Poison/"
+						"If you notice a purple background around/"
+						"a monster, that means it is POISONED.//"
+						"To avoid this, try evolving your/"
+						"monster to have a higher defense,/"
+						"looking in the species menu to,/"
+						"find anything toxic, or avoiding/"
+						"getting into battles.");
+				GameWindow::tutorial[4] = true;
+			}
 		}
 	}
 	if(alive)
@@ -472,6 +473,7 @@ void Monster::nextGeneration()
 	y = (y/8)*8;
 	moved = true;
 	clickedHere = false;
+	monster = Species::monsterSpecies[this->species];
 
 	if(monster.behaviors[Behaviors::SHELTER_1] && shelterX == -1 && enemy)
 	{
@@ -536,7 +538,7 @@ void Monster::nextGeneration()
 	int repValue = rand()%40;
 	int gn = getNeighborhood();
 	//Reproduce
-	if(hp >= monster.metabolism * 1.5 && age >= 2 && gn<=monster.maxNew && gn>=monster.minNew && repValue<30)
+	if(poison <= 0 && hp >= monster.metabolism * 1.5 && age >= 2 && gn<=monster.maxNew && gn>=monster.minNew && repValue<30)
 	{
 		int newX = ((rand()%5)*8)-16;
 		int newY = ((rand()%5)*8)-16;
@@ -557,7 +559,7 @@ void Monster::nextGeneration()
 		{
 			randNum = 100;
 		}
-		if(monster.evolvePass >= 0 && rand()%2000<50 && monster.enemy && alive)
+		if(/*Species::monsterSpecies[this->species].evolvePass >= 0 && */rand()%2000<160 && monster.enemy && alive)
 		{
 			if(evolutionOccuredYetMonst <  2 && monster.land)
 			{
@@ -1008,7 +1010,7 @@ void Monster::eatPlant(Plant* p)
 			}
 		}
 	}
-	else if(plant.toxicity > monster.resil && plant.toxicity > monster.size && poison <= 0)
+	else if(plant.toxicity > monster.resil && plant.toxicity > monster.size && poison <= monster.size * 3)
 	{
 		poison += (plant.toxicity-monster.size);
 	}
@@ -1033,13 +1035,13 @@ void Monster::evolve()
 	int lifespan = monster.lifespan;
 	int agression = monster.agression;
 	bool carnivore = monster.carnivore;
-	monster.evolvePass = -2;
+	Species::monsterSpecies[this->species].evolvePass = -2;
 	if(rand()%100<40)
 	{
 		carnivore = !carnivore;
 	}
 
-	if(rand()%100<40)
+	if(rand()%100<70)
 	{
 		minNew--;
 		maxNew++;
@@ -1051,11 +1053,10 @@ void Monster::evolve()
 		maxNew++;
 		lifespan+=2;
 	}
-	if(rand()%100<40)
+	if(rand()%100<70)
 	{
 		minDeath--;
 		maxDeath++;
-		lifespan--;
 	}
 	else if(maxDeath-minDeath > 1 && rand()%100<40)
 	{
@@ -1066,13 +1067,11 @@ void Monster::evolve()
 
 	if(rand()%100<40)
 	{
-		toxicity+=2;
-		lifespan--;
+		toxicity+=1;
 	}
 	else if(toxicity > 0 && rand()%100<50)
 	{
 		toxicity--;
-		lifespan+=2;
 	}
 	if(rand()%100<40)
 	{
@@ -1090,32 +1089,35 @@ void Monster::evolve()
 		size++;
 	}
 
-	if(rand()%100<40)
+	if(rand()%100<50)
 	{
-		metabolism++;
-		speed += 1;
+		if(rand()%100 < 50)
+		{
+			metabolism++;
+		}
+		speed += 2;
 	}
-	else if(rand()%100<40)
+	else if(rand()%100<50)
 	{
 		metabolism-=2;
 		speed--;
 	}
 
-	if(rand()%100<50)
+	if(rand()%100<60)
 	{
 		strength += 2;
 	}
-	if(rand()%100<50)
+	if(rand()%100<60)
 	{
 		resil += 2;
 	}
 
 	size += 1;
-	if(rand()%100<30)
+	if(rand()%100<50)
 	{
 		strength -= 1;
 	}
-	if(rand()%100<30)
+	if(rand()%100<50)
 	{
 		resil -= 1;
 	}
@@ -1151,12 +1153,12 @@ void Monster::evolve()
 	if(rand()%100<60)
 	{
 		agression+=2;
-		strength++;
+		//strength++;
 	}
 	else if(rand()%100<50)
 	{
 		agression--;
-		resil++;
+		//resil++;
 	}
 	if(agression < 0)
 	{
@@ -1358,7 +1360,7 @@ void Monster::evolve()
 		{
 			newSp.behaviors[Behaviors::TO_MEAT] = false;
 		}
-		if(!newSp.behaviors[Behaviors::WEAPON_1] && (newSp.agression > 5 || newSp.carnivore))
+		if(!newSp.behaviors[Behaviors::WEAPON_1] && (newSp.agression > 3 || newSp.carnivore))
 		{
 			if(generation > 35)
 			{
@@ -1369,7 +1371,7 @@ void Monster::evolve()
 				}
 			}
 		}
-		else if(newSp.resil > 4 && !newSp.behaviors[Behaviors::SHELTER_1])
+		else if(newSp.resil > 3 && !newSp.behaviors[Behaviors::SHELTER_1])
 		{
 			if(newSp.complexity >= 3 && (generation > 40))
 			{
@@ -1433,18 +1435,19 @@ void Monster::evolve()
 	{
 	}
 
+
 	if(newSp.size > (generation/10)+3)
 	{
 		newSp.size = (generation/10)+3;
 	}
 
-	if(newSp.maxDeath > 5)
+	if(newSp.maxDeath > 6)
 	{
-		newSp.maxDeath = 5;
+		newSp.maxDeath = 6;
 	}
-	if(newSp.maxNew > 5)
+	if(newSp.maxNew > 6)
 	{
-		newSp.maxNew = 5;
+		newSp.maxNew = 6;
 	}
 	Species::monsterSpecies.push_back(newSp);
 	int newX = ((rand()%5)*8)-16;
@@ -1911,25 +1914,15 @@ void Monster::setShelterLoc(int ix, int iy)
 
 void Monster::createShelter()
 {
-	int newPop = 0;
-	if(getPopulation() > hp)
-	{
-		newPop = rand()%((hp/2)+2);
-	}
-	else
-	{
-		newPop = getPopulation();
-	}
 	int type = 0;
 	if(monster.behaviors[Behaviors::SHELTER_2])
 	{
 		type = 1;
 	}
-	Shelter* s = new Shelter(x,y,species,type,hp,(newPop/2)+1);
+	Shelter* s = new Shelter(x,y,species,type,hp,arbitraryPopNumber);
 	objects.push_back(s);
 	shelters.push_back(s);
-	alive = false;
-	Species::monsterSpecies[species].population -= arbitraryPopNumber;
+	kill();
 }
 
 void Monster::enterShelter()
@@ -1944,8 +1937,7 @@ void Monster::enterShelter()
 				if(shelter->getSpecies() == species)
 				{
 					shelter->add(hp,getPopulation());
-					alive = false;
-					Species::monsterSpecies[species].population -= arbitraryPopNumber;
+					kill();
 					break;
 				}
 			}

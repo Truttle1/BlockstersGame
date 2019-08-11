@@ -261,7 +261,7 @@ void TurnBrief::enable()
 
 	for(unsigned i = 0; i < Species::monstersDiscovered.size(); i++)
 	{
-		if(Species::monsterSpecies[Species::monstersDiscovered[i]].oldPopulation > 0)
+		if(Species::monstersDiscovered[i] < Species::monsterSpecies.size() && Species::monsterSpecies[Species::monstersDiscovered[i]].oldPopulation > 0)
 		{
 			if(oldestR == -1)
 			{

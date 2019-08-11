@@ -49,7 +49,7 @@ void GameWindow::init(Camera2D* cam)
 
 	InitWindow(GameWindow::WINDOW_WIDTH,GameWindow::WINDOW_HEIGHT,"Blocksters - A Truttle1 Game");
 
-	SetTargetFPS(24);
+	SetTargetFPS(30);
 	PlantImg::initTextures();
 	MonsterImg::initTextures();
 	ObjectColors::initColors();
@@ -223,12 +223,12 @@ void GameWindow::drawGUI()
 void GameWindow::titleScreenTick()
 {
 	loadUI.tick();
-	if(getClicking(playX,playY,128,64))
+	if(getClicking(playX,playY,128,64) && !loadUI.getRunning())
 	{
 		gameMode = SELECTION_SCREEN;
 		loadUI.lighten();
 	}
-	if(getClicking(loadX,loadY,128,64))
+	if(getClicking(loadX,loadY,128,64) && !loadUI.getRunning())
 	{
 		loadUI.toggle();
 	}
@@ -340,11 +340,11 @@ void GameWindow::gameTick()
 	centerY = (240/camera->zoom)-(camera->offset.y/camera->zoom);
 	internalClock++;
 	GameObject::setGroundArray(groundArray);
-	if((!messageBox.getVisible() || GameObject::generation < 0) && !turnBrief.getVisible())
+	if(!messageBox.getVisible() || GameObject::generation < 0)
 	{
+		cout << GameObject::objects.size() << endl;
 		for(uint i = GameObject::generation < 1 ? 0 : 3600; i<GameObject::objects.size();i++)
 		{
-			vector<GameObject*> objects = GameObject::objects;
 			GameObject* obj = GameObject::objects[i];
 			obj->setInternalClock(internalClock);
 			obj->tick();
@@ -365,6 +365,7 @@ void GameWindow::gameTick()
 						GameObject::objects.erase(GameObject::objects.begin()+i);
 					}
 				}
+
 				if(temp->getName() == SHELTER)
 				{
 					Shelter* p = static_cast<Shelter*>(temp);
@@ -403,6 +404,7 @@ void GameWindow::gameTick()
 						GameObject::objects.erase(GameObject::objects.begin()+i);
 					}
 				}
+				/**/
 			}
 		}
 	}

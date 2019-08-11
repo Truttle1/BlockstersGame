@@ -49,8 +49,11 @@ void PlantUI::render()
 		if(Species::plantsDiscovered.size()>0)
 		{
 			curViewing = Species::plantsDiscovered[index];
-			DrawTexturePro(Species::plantSpecies[curViewing].image,srcRect,destRect,origin,0,WHITE);
-			drawStats();
+			if(curViewing < Species::plantSpecies.size())
+			{
+				DrawTexturePro(Species::plantSpecies[curViewing].image,srcRect,destRect,origin,0,WHITE);
+				drawStats();
+			}
 		}
 		DrawTexture(leftButton,leftButtonX,leftButtonY,WHITE);
 		DrawTexture(rightButton,rightButtonX,rightButtonY,WHITE);
